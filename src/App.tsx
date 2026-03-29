@@ -343,6 +343,8 @@ export default function App() {
   const [theme, setTheme] = useState<Theme>(THEMES[0]);
   const [time, setTime] = useState(new Date());
   const [isControlCenterOpen, setIsControlCenterOpen] = useState(false);
+  const [isAppDrawerOpen, setIsAppDrawerOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
 
   // Quick Settings States
@@ -405,6 +407,11 @@ export default function App() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 1.1 }}
+                drag="y"
+                dragConstraints={{ top: 0, bottom: 0 }}
+                onDragEnd={(_, info) => {
+                  if (info.offset.y < -50) setIsAppDrawerOpen(true);
+                }}
                 className="h-full w-full p-8 flex flex-col"
               >
                 {/* Search Bar */}
@@ -413,9 +420,9 @@ export default function App() {
                   <span className="text-sm">Search apps...</span>
                 </div>
 
-                {/* App Grid */}
+                {/* App Grid - Only show main apps on home */}
                 <div className="grid grid-cols-4 gap-6">
-                  {apps.filter(a => a.id !== 'profile').map(app => (
+                  {apps.filter(a => ['browser', 'weather', 'music', 'appstore'].includes(a.id)).map(app => (
                     <motion.button
                       key={app.id}
                       whileHover={{ scale: 1.1 }}
@@ -431,8 +438,20 @@ export default function App() {
                   ))}
                 </div>
 
+                {/* Pull Up Indicator for App Drawer */}
+                <div className="mt-auto mb-4 flex flex-col items-center gap-2 cursor-pointer" onClick={() => setIsAppDrawerOpen(true)}>
+                  <motion.div 
+                    animate={{ y: [0, -5, 0] }}
+                    transition={{ repeat: Infinity, duration: 2 }}
+                    className="text-white/30"
+                  >
+                    <Smartphone size={16} className="rotate-180" />
+                  </motion.div>
+                  <span className="text-[10px] text-white/30 uppercase tracking-widest font-bold">Swipe up for apps</span>
+                </div>
+
                 {/* Dock */}
-                <div className="mt-auto glass rounded-[32px] p-4 flex justify-around items-center">
+                <div className="glass rounded-[32px] p-4 flex justify-around items-center">
                   {apps.slice(0, 4).map(app => (
                     <button 
                       key={`dock-${app.id}`} 
@@ -454,6 +473,69 @@ export default function App() {
                 className="absolute inset-0 z-40"
               >
                 {apps.find(a => a.id === activeApp)?.component({})}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* App Drawer Overlay */}
+          <AnimatePresence>
+            {isAppDrawerOpen && (
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 30, stiffness: 200 }}
+                drag="y"
+                dragConstraints={{ top: 0 }}
+                onDragEnd={(_, info) => {
+                  if (info.offset.y > 100) setIsAppDrawerOpen(false);
+                }}
+                className="absolute inset-0 z-[100] bg-black/90 backdrop-blur-xl p-8 pt-16 flex flex-col"
+              >
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-2xl font-bold font-display text-white">All Apps</h2>
+                  <button onClick={() => setIsAppDrawerOpen(false)} className="p-2 bg-white/10 rounded-full text-white">
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {/* Search in Drawer */}
+                <div className="glass rounded-2xl p-3 mb-8 flex items-center gap-3 text-white/50">
+                  <Search size={18} />
+                  <input 
+                    type="text" 
+                    placeholder="Search apps..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-transparent border-none outline-none text-sm w-full text-white"
+                  />
+                </div>
+
+                <div className="grid grid-cols-4 gap-y-8 gap-x-4 overflow-y-auto pb-20">
+                  {apps.filter(app => app.name.toLowerCase().includes(searchQuery.toLowerCase())).map(app => (
+                    <motion.button
+                      key={`drawer-${app.id}`}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => {
+                        setActiveApp(app.id);
+                        setIsAppDrawerOpen(false);
+                      }}
+                      className="flex flex-col items-center gap-2"
+                    >
+                      <div className={`${app.color} w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg`}>
+                        <app.icon className="text-white" size={28} />
+                      </div>
+                      <span className="text-[10px] text-white font-medium">{app.name}</span>
+                    </motion.button>
+                  ))}
+                </div>
+
+                {/* Swipe Down to Close Indicator */}
+                <div 
+                  className="absolute bottom-4 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/20 rounded-full cursor-pointer"
+                  onClick={() => setIsAppDrawerOpen(false)}
+                />
               </motion.div>
             )}
           </AnimatePresence>
