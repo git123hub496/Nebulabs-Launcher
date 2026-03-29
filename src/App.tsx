@@ -58,7 +58,7 @@ import {
 
 // --- Mock Apps ---
 
-const ProfileApp = ({ profile, setProfile }: { profile: UserProfile, setProfile: (p: UserProfile) => void }) => {
+const ProfileApp = ({ profile, setProfile, accent }: { profile: UserProfile, setProfile: (p: UserProfile) => void, accent: string }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempProfile, setTempProfile] = useState(profile);
 
@@ -73,7 +73,8 @@ const ProfileApp = ({ profile, setProfile }: { profile: UserProfile, setProfile:
         <h1 className="text-3xl font-bold font-display">Profile</h1>
         <button 
           onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-          className="bg-purple-600 px-4 py-1 rounded-full text-sm font-bold"
+          className="px-4 py-1 rounded-full text-sm font-bold transition-colors"
+          style={{ backgroundColor: accent }}
         >
           {isEditing ? 'Save' : 'Edit'}
         </button>
@@ -84,7 +85,8 @@ const ProfileApp = ({ profile, setProfile }: { profile: UserProfile, setProfile:
           <img 
             src={isEditing ? tempProfile.avatar : profile.avatar} 
             alt="Avatar" 
-            className="w-32 h-32 rounded-full border-4 border-purple-500/30 object-cover mb-4"
+            className="w-32 h-32 rounded-full border-4 object-cover mb-4 transition-all"
+            style={{ borderColor: `${accent}50` }}
             referrerPolicy="no-referrer"
           />
           {isEditing && (
@@ -538,7 +540,10 @@ const SnakeApp = () => {
         <span>Score: {score}</span>
         {gameOver && <span className="text-red-500">GAME OVER</span>}
       </div>
-      <div className="grid grid-cols-20 grid-rows-20 w-full aspect-square bg-zinc-900 border border-white/10 relative">
+      <div 
+        className="grid w-full aspect-square bg-zinc-900 border border-white/10 relative"
+        style={{ gridTemplateColumns: 'repeat(20, 1fr)', gridTemplateRows: 'repeat(20, 1fr)' }}
+      >
         {snake.map((s, i) => (
           <div key={i} className="absolute bg-green-500 w-[5%] h-[5%]" style={{ left: `${s.x * 5}%`, top: `${s.y * 5}%` }} />
         ))}
@@ -609,9 +614,10 @@ const MinesweeperApp = () => {
   );
 };
 
-const AppStoreApp = ({ installedAppIds, onInstall }: { 
+const AppStoreApp = ({ installedAppIds, onInstall, accent }: { 
   installedAppIds: string[], 
-  onInstall: (id: AppId) => void 
+  onInstall: (id: AppId) => void,
+  accent: string
 }) => {
   const storeApps = [
     { id: 'messages', name: 'Quantum Chat', desc: 'Secure messaging for the stars', icon: MessageSquare, color: 'bg-blue-500' },
@@ -647,11 +653,11 @@ const AppStoreApp = ({ installedAppIds, onInstall }: {
                   </div>
                   <button 
                     onClick={() => onInstall(app.id as AppId)}
-                    className={`text-xs font-bold px-4 py-2 rounded-full transition-colors ${
-                      isInstalled 
-                        ? 'bg-zinc-800 text-zinc-400' 
-                        : 'bg-white text-black hover:bg-zinc-200'
-                    }`}
+                    className={`text-xs font-bold px-4 py-2 rounded-full transition-colors`}
+                    style={{ 
+                      backgroundColor: isInstalled ? 'rgba(255,255,255,0.1)' : accent,
+                      color: isInstalled ? 'rgba(255,255,255,0.5)' : 'white'
+                    }}
                   >
                     {isInstalled ? 'OPEN' : 'GET'}
                   </button>
@@ -677,7 +683,7 @@ const ACCENT_COLORS = [
 const SettingsApp = ({ 
   theme, 
   setTheme, 
-  accent,
+  accent, 
   setAccent,
   profile, 
   setProfile, 
@@ -687,7 +693,9 @@ const SettingsApp = ({
   reduceMotion,
   setReduceMotion,
   deviceName,
-  setDeviceName
+  setDeviceName,
+  navigationMode,
+  setNavigationMode
 }: { 
   theme: Theme, 
   setTheme: (t: Theme) => void,
@@ -701,9 +709,11 @@ const SettingsApp = ({
   reduceMotion: boolean,
   setReduceMotion: (v: boolean) => void,
   deviceName: string,
-  setDeviceName: (v: string) => void
+  setDeviceName: (v: string) => void,
+  navigationMode: 'gestures' | 'buttons',
+  setNavigationMode: (m: 'gestures' | 'buttons') => void
 }) => {
-  const [activeSection, setActiveSection] = useState<'main' | 'wallpaper' | 'about' | 'safety' | 'accessibility' | 'medical'>('main');
+  const [activeSection, setActiveSection] = useState<'main' | 'wallpaper' | 'about' | 'safety' | 'accessibility' | 'medical' | 'navigation'>('main');
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateProgress, setUpdateProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -757,7 +767,8 @@ const SettingsApp = ({
             <button 
               key={i} 
               onClick={() => setWallpaper(wp)}
-              className={`aspect-[9/16] rounded-2xl overflow-hidden border-2 transition-all ${wallpaper === wp ? 'border-purple-500 scale-95' : 'border-transparent'}`}
+              className={`aspect-[9/16] rounded-2xl overflow-hidden border-2 transition-all ${wallpaper === wp ? 'scale-95' : 'border-transparent'}`}
+              style={{ borderColor: wallpaper === wp ? accent : 'transparent' }}
             >
               <img src={wp} alt={`Wallpaper ${i}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             </button>
@@ -784,14 +795,18 @@ const SettingsApp = ({
         </div>
         <div className="space-y-4">
           <div className="glass p-6 rounded-3xl flex flex-col items-center text-center">
-            <div className="w-20 h-20 bg-purple-600 rounded-3xl flex items-center justify-center mb-4 shadow-xl">
+            <div 
+              className="w-20 h-20 rounded-3xl flex items-center justify-center mb-4 shadow-xl transition-colors"
+              style={{ backgroundColor: accent }}
+            >
               <Smartphone size={40} />
             </div>
             <input 
               type="text" 
               value={deviceName}
               onChange={(e) => setDeviceName(e.target.value)}
-              className="text-xl font-bold bg-transparent border-none outline-none text-center w-full focus:text-purple-400"
+              className="text-xl font-bold bg-transparent border-none outline-none text-center w-full focus:opacity-80"
+              style={{ color: accent }}
             />
             <p className="text-zinc-500 text-sm">Model: NP-2026-X</p>
           </div>
@@ -800,14 +815,14 @@ const SettingsApp = ({
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-bold">Software Update</span>
               {isUpdating ? (
-                <span className="text-xs text-purple-400 font-bold">{updateProgress}%</span>
+                <span className="text-xs font-bold" style={{ color: accent }}>{updateProgress}%</span>
               ) : (
-                <button onClick={startUpdate} className="text-xs text-purple-400 font-bold">CHECK</button>
+                <button onClick={startUpdate} className="text-xs font-bold" style={{ color: accent }}>CHECK</button>
               )}
             </div>
             {isUpdating && (
               <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-purple-500 transition-all duration-300" style={{ width: `${updateProgress}%` }} />
+                <div className="h-full transition-all duration-300" style={{ width: `${updateProgress}%`, backgroundColor: accent }} />
               </div>
             )}
             {!isUpdating && updateProgress === 100 && (
@@ -935,7 +950,10 @@ const SettingsApp = ({
                   <span className="text-[10px] text-zinc-500">Minimize animations and transitions</span>
                 </div>
               </div>
-              <div className={`w-10 h-5 rounded-full relative transition-colors ${reduceMotion ? 'bg-purple-600' : 'bg-zinc-800'}`}>
+              <div 
+                className={`w-10 h-5 rounded-full relative transition-colors ${reduceMotion ? '' : 'bg-zinc-800'}`}
+                style={{ backgroundColor: reduceMotion ? accent : undefined }}
+              >
                 <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${reduceMotion ? 'right-1' : 'left-1'}`} />
               </div>
             </button>
@@ -951,6 +969,43 @@ const SettingsApp = ({
                 <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full" />
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (activeSection === 'navigation') {
+    return (
+      <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
+          <h1 className="text-2xl font-bold font-display">Navigation</h1>
+        </div>
+        <div className="space-y-4">
+          <div className="glass rounded-2xl p-4 space-y-4">
+            <button 
+              onClick={() => setNavigationMode('gestures')}
+              className={`w-full p-4 rounded-xl border-2 flex items-center justify-between transition-all ${navigationMode === 'gestures' ? 'bg-white/10' : 'border-transparent bg-white/5'}`}
+              style={{ borderColor: navigationMode === 'gestures' ? accent : 'transparent' }}
+            >
+              <div className="flex flex-col text-left">
+                <span className="font-bold">Gesture Navigation</span>
+                <span className="text-[10px] text-zinc-500">Swipe up for home, swipe down for settings</span>
+              </div>
+              {navigationMode === 'gestures' && <CheckCircle2 size={20} style={{ color: accent }} />}
+            </button>
+            <button 
+              onClick={() => setNavigationMode('buttons')}
+              className={`w-full p-4 rounded-xl border-2 flex items-center justify-between transition-all ${navigationMode === 'buttons' ? 'bg-white/10' : 'border-transparent bg-white/5'}`}
+              style={{ borderColor: navigationMode === 'buttons' ? accent : 'transparent' }}
+            >
+              <div className="flex flex-col text-left">
+                <span className="font-bold">3-Button Navigation</span>
+                <span className="text-[10px] text-zinc-500">Back, Home, and Recents buttons</span>
+              </div>
+              {navigationMode === 'buttons' && <CheckCircle2 size={20} style={{ color: accent }} />}
+            </button>
           </div>
         </div>
       </div>
@@ -1036,6 +1091,7 @@ const SettingsApp = ({
             { icon: Lock, label: 'Privacy & Security', color: 'text-green-400', section: null },
             { icon: Shield, label: 'Safety & Emergency', color: 'text-red-500', section: 'safety' },
             { icon: Accessibility, label: 'Accessibility', color: 'text-purple-400', section: 'accessibility' },
+            { icon: Smartphone, label: 'Navigation', color: 'text-zinc-400', section: 'navigation' },
             { icon: Info, label: 'About Phone', color: 'text-blue-400', section: 'about' }
           ].map(item => (
             <button 
@@ -1127,6 +1183,11 @@ export default function App() {
   const [deviceName, setDeviceName] = useState(() => {
     return localStorage.getItem('nebula_device_name') || 'Nebula Phone 1';
   });
+  const [navigationMode, setNavigationMode] = useState<'gestures' | 'buttons'>(() => {
+    return (localStorage.getItem('nebula_nav_mode') as 'gestures' | 'buttons') || 'gestures';
+  });
+  const [history, setHistory] = useState<AppId[]>(['home']);
+  const [isRecentsOpen, setIsRecentsOpen] = useState(false);
 
   // Quick Settings States
   const [wifiEnabled, setWifiEnabled] = useState(true);
@@ -1147,16 +1208,17 @@ export default function App() {
     localStorage.setItem('nebula_wallpaper', wallpaper);
     localStorage.setItem('nebula_reduce_motion', reduceMotion.toString());
     localStorage.setItem('nebula_device_name', deviceName);
-  }, [theme, accentColor, profile, installedAppIds, wallpaper, reduceMotion, deviceName]);
+    localStorage.setItem('nebula_nav_mode', navigationMode);
+  }, [theme, accentColor, profile, installedAppIds, wallpaper, reduceMotion, deviceName, navigationMode]);
 
   const apps: AppConfig[] = [
     { id: 'browser', name: 'Browser', icon: Globe, color: 'bg-blue-500', component: BrowserApp },
     { id: 'weather', name: 'Weather', icon: Cloud, color: 'bg-sky-400', component: WeatherApp },
     { id: 'music', name: 'Music', icon: MusicIcon, color: 'bg-purple-600', component: MusicApp },
-    { id: 'appstore', name: 'Store', icon: ShoppingBag, color: 'bg-zinc-800', component: () => <AppStoreApp installedAppIds={installedAppIds} onInstall={toggleInstall} /> },
+    { id: 'appstore', name: 'Store', icon: ShoppingBag, color: 'bg-zinc-800', component: () => <AppStoreApp installedAppIds={installedAppIds} onInstall={toggleInstall} accent={accentColor} /> },
     { id: 'camera', name: 'Camera', icon: CameraIcon, color: 'bg-zinc-700', component: CameraApp },
-    { id: 'settings', name: 'Settings', icon: SettingsIcon, color: 'bg-zinc-600', component: () => <SettingsApp theme={theme} setTheme={setTheme} accent={accentColor} setAccent={setAccentColor} profile={profile} setProfile={setProfile} onOpenProfile={() => setActiveApp('profile')} wallpaper={wallpaper} setWallpaper={setWallpaper} reduceMotion={reduceMotion} setReduceMotion={setReduceMotion} deviceName={deviceName} setDeviceName={setDeviceName} /> },
-    { id: 'profile', name: 'Profile', icon: User, color: 'bg-indigo-500', component: () => <ProfileApp profile={profile} setProfile={setProfile} /> },
+    { id: 'settings', name: 'Settings', icon: SettingsIcon, color: 'bg-zinc-600', component: () => <SettingsApp theme={theme} setTheme={setTheme} accent={accentColor} setAccent={setAccentColor} profile={profile} setProfile={setProfile} onOpenProfile={() => setActiveApp('profile')} wallpaper={wallpaper} setWallpaper={setWallpaper} reduceMotion={reduceMotion} setReduceMotion={setReduceMotion} deviceName={deviceName} setDeviceName={setDeviceName} navigationMode={navigationMode} setNavigationMode={setNavigationMode} /> },
+    { id: 'profile', name: 'Profile', icon: User, color: 'bg-indigo-500', component: () => <ProfileApp profile={profile} setProfile={setProfile} accent={accentColor} /> },
     { id: 'messages', name: 'Messages', icon: MessageSquare, color: 'bg-blue-500', component: MessagesApp },
     { id: 'calendar', name: 'Calendar', icon: CalendarIcon, color: 'bg-green-500', component: CalendarApp },
     { id: 'emails', name: 'Emails', icon: Mail, color: 'bg-indigo-600', component: EmailsApp },
@@ -1167,16 +1229,40 @@ export default function App() {
     { id: 'notes', name: 'Notes', icon: FileText, color: 'bg-yellow-600', component: NotesApp },
   ];
 
+  const getAppBg = (appId: AppId, defaultColor: string) => {
+    const systemApps: AppId[] = ['settings', 'appstore', 'camera', 'profile', 'calculator', 'notes'];
+    if (systemApps.includes(appId)) return { backgroundColor: accentColor };
+    return {};
+  };
+
   const toggleInstall = (id: AppId) => {
     if (installedAppIds.includes(id)) {
-      setActiveApp(id);
+      handleOpenApp(id);
     } else {
       setInstalledAppIds([...installedAppIds, id]);
     }
   };
 
+  const handleOpenApp = (id: AppId) => {
+    setActiveApp(id);
+    setHistory(prev => [...prev, id]);
+  };
+
+  const handleBack = () => {
+    if (history.length > 1) {
+      const newHistory = [...history];
+      newHistory.pop();
+      const previousApp = newHistory[newHistory.length - 1];
+      setHistory(newHistory);
+      setActiveApp(previousApp);
+    } else {
+      setActiveApp('home');
+    }
+  };
+
   const handleHomeGesture = () => {
     setActiveApp('home');
+    setHistory(['home']);
   };
 
   return (
@@ -1197,19 +1283,29 @@ export default function App() {
       <div className="relative w-full h-full bg-black overflow-hidden flex flex-col">
         
         {/* Status Bar / Swipe Down Trigger */}
-        <div 
+        {/* Status Bar / Gesture Area */}
+        <motion.div 
+          drag="y"
+          dragConstraints={{ top: 0, bottom: 0 }}
+          onDragEnd={(_, info) => {
+            if (info.offset.y > 50) setIsControlCenterOpen(true);
+          }}
           className="h-12 px-8 flex items-center justify-between z-50 text-white text-xs font-medium cursor-ns-resize"
-          onMouseDown={() => setIsControlCenterOpen(true)}
-          onTouchStart={() => setIsControlCenterOpen(true)}
         >
-          <div>{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+          <div className="flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="opacity-80">
+              <rect x="4" y="8" width="24" height="6" rx="2" fill="#E5E7EB" stroke="#4B5563" strokeWidth="1" />
+              <rect x="4" y="18" width="24" height="6" rx="2" fill="#E5E7EB" stroke="#4B5563" strokeWidth="1" />
+            </svg>
+            <span>{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
           <div className="flex items-center gap-2">
             {wifiEnabled && <Wifi size={14} />}
             {bluetoothEnabled && <Bluetooth size={14} />}
             <Signal size={14} />
             <Battery size={14} className="rotate-90" />
           </div>
-        </div>
+        </motion.div>
 
         {/* Screen Content */}
         <div className="flex-1 relative overflow-hidden">
@@ -1229,8 +1325,11 @@ export default function App() {
                 className="h-full w-full p-8 flex flex-col"
               >
                 {/* Search Bar */}
-                <div className="glass rounded-2xl p-3 mb-8 flex items-center gap-3 text-white/50">
-                  <Search size={18} />
+                <div 
+                  className="glass rounded-2xl p-3 mb-8 flex items-center gap-3 text-white/50 transition-all"
+                  style={{ border: `1px solid ${accentColor}30` }}
+                >
+                  <Search size={18} style={{ color: accentColor }} />
                   <span className="text-sm">Search apps...</span>
                 </div>
 
@@ -1241,10 +1340,13 @@ export default function App() {
                       key={app.id}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
-                      onClick={() => setActiveApp(app.id)}
+                      onClick={() => handleOpenApp(app.id)}
                       className="flex flex-col items-center gap-2"
                     >
-                      <div className={`${app.color} w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg`}>
+                      <div 
+                        className={`${app.color} w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all`}
+                        style={getAppBg(app.id, app.color)}
+                      >
                         <app.icon className="text-white" size={28} />
                       </div>
                       <span className="text-[10px] text-white font-medium">{app.name}</span>
@@ -1265,12 +1367,16 @@ export default function App() {
                 </div>
 
                 {/* Dock */}
-                <div className="glass rounded-[32px] p-4 flex justify-around items-center">
+                <div 
+                  className="glass rounded-[32px] p-4 flex justify-around items-center"
+                  style={{ border: `1px solid ${accentColor}20` }}
+                >
                   {apps.filter(a => installedAppIds.includes(a.id)).slice(0, 4).map(app => (
                     <button 
                       key={`dock-${app.id}`} 
-                      onClick={() => setActiveApp(app.id)}
-                      className={`${app.color} w-12 h-12 rounded-2xl flex items-center justify-center shadow-md`}
+                      onClick={() => handleOpenApp(app.id)}
+                      className={`${app.color} w-12 h-12 rounded-2xl flex items-center justify-center shadow-md transition-all`}
+                      style={getAppBg(app.id, app.color)}
                     >
                       <app.icon className="text-white" size={24} />
                     </button>
@@ -1286,7 +1392,12 @@ export default function App() {
                 transition={reduceMotion ? { duration: 0.2 } : { type: 'spring', damping: 25, stiffness: 200 }}
                 className="absolute inset-0 z-40"
               >
-                {apps.find(a => a.id === activeApp)?.component({})}
+                {(() => {
+                  const app = apps.find(a => a.id === activeApp);
+                  if (!app) return null;
+                  const Component = app.component;
+                  return <Component />;
+                })()}
               </motion.div>
             )}
           </AnimatePresence>
@@ -1307,15 +1418,18 @@ export default function App() {
                 className="absolute inset-0 z-[100] bg-black/90 backdrop-blur-xl p-8 pt-16 flex flex-col"
               >
                 <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl font-bold font-display text-white">All Apps</h2>
+                  <h2 className="text-2xl font-bold font-display text-white">N Launcher</h2>
                   <button onClick={() => setIsAppDrawerOpen(false)} className="p-2 bg-white/10 rounded-full text-white">
                     <X size={20} />
                   </button>
                 </div>
 
                 {/* Search in Drawer */}
-                <div className="glass rounded-2xl p-3 mb-8 flex items-center gap-3 text-white/50">
-                  <Search size={18} />
+                <div 
+                  className="glass rounded-2xl p-3 mb-8 flex items-center gap-3 text-white/50"
+                  style={{ border: `1px solid ${accentColor}30` }}
+                >
+                  <Search size={18} style={{ color: accentColor }} />
                   <input 
                     type="text" 
                     placeholder="Search apps..." 
@@ -1330,17 +1444,20 @@ export default function App() {
                     app.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
                     installedAppIds.includes(app.id)
                   ).map(app => (
-                    <motion.button
+                      <motion.button
                       key={`drawer-${app.id}`}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={() => {
-                        setActiveApp(app.id);
+                        handleOpenApp(app.id);
                         setIsAppDrawerOpen(false);
                       }}
                       className="flex flex-col items-center gap-2"
                     >
-                      <div className={`${app.color} w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg`}>
+                      <div 
+                        className={`${app.color} w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all`}
+                        style={getAppBg(app.id, app.color)}
+                      >
                         <app.icon className="text-white" size={28} />
                       </div>
                       <span className="text-[10px] text-white font-medium">{app.name}</span>
@@ -1460,16 +1577,32 @@ export default function App() {
           </AnimatePresence>
         </div>
 
-        {/* Home Indicator / Gesture Bar */}
-        <div className="h-8 flex items-center justify-center relative">
-          <motion.div 
-            drag="y"
-            dragConstraints={{ top: 0, bottom: 0 }}
-            onDragEnd={(_, info) => {
-              if (info.offset.y < -50) handleHomeGesture();
-            }}
-            className="w-32 h-1.5 bg-white/30 rounded-full cursor-pointer hover:bg-white/50 transition-colors"
-          />
+        {/* Navigation Bar */}
+        <div className="h-12 flex items-center justify-center relative bg-black/20 backdrop-blur-md border-t border-white/5">
+          {navigationMode === 'gestures' ? (
+            <motion.div 
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 0 }}
+              onDragEnd={(_, info) => {
+                if (info.offset.y < -50) handleHomeGesture();
+              }}
+              className="w-32 h-1.5 rounded-full cursor-pointer transition-colors"
+              style={{ backgroundColor: `${accentColor}50` }}
+              whileHover={{ backgroundColor: accentColor }}
+            />
+          ) : (
+            <div className="flex items-center justify-around w-full px-8">
+              <button onClick={handleBack} className="p-2 text-white/50 hover:text-white transition-colors">
+                <ChevronLeft size={24} />
+              </button>
+              <button onClick={handleHomeGesture} className="p-2 text-white/50 hover:text-white transition-colors">
+                <div className="w-4 h-4 rounded-full border-2 border-current" />
+              </button>
+              <button onClick={() => setIsRecentsOpen(true)} className="p-2 text-white/50 hover:text-white transition-colors">
+                <div className="w-4 h-4 rounded-sm border-2 border-current" />
+              </button>
+            </div>
+          )}
           
           {/* Top Gesture Area for Control Center */}
           <div 
@@ -1477,11 +1610,70 @@ export default function App() {
             onMouseEnter={() => setIsControlCenterOpen(true)}
           />
         </div>
+
+        {/* Recents Overlay */}
+        <AnimatePresence>
+          {isRecentsOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-[200] bg-black/80 backdrop-blur-xl p-8 flex flex-col"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-bold font-display text-white">Recents</h2>
+                <button onClick={() => setIsRecentsOpen(false)} className="p-2 bg-white/10 rounded-full text-white">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="flex-1 overflow-x-auto flex items-center gap-6 px-4">
+                {history.filter(id => id !== 'home').reverse().map((id, i) => {
+                  const app = apps.find(a => a.id === id);
+                  if (!app) return null;
+                  return (
+                    <motion.div
+                      key={`recent-${id}-${i}`}
+                      whileHover={{ scale: 1.05 }}
+                      className="min-w-[200px] h-[350px] glass rounded-3xl overflow-hidden flex flex-col shadow-2xl cursor-pointer"
+                      onClick={() => {
+                        setActiveApp(id);
+                        setIsRecentsOpen(false);
+                      }}
+                    >
+                      <div className="p-4 border-b border-white/10 flex items-center gap-3">
+                        <div className={`${app.color} w-8 h-8 rounded-lg flex items-center justify-center`}>
+                          <app.icon size={16} className="text-white" />
+                        </div>
+                        <span className="font-bold text-sm text-white">{app.name}</span>
+                      </div>
+                      <div className="flex-1 bg-zinc-900/50 flex items-center justify-center">
+                        <app.icon size={64} className="text-white/10" />
+                      </div>
+                    </motion.div>
+                  );
+                })}
+                {history.length <= 1 && (
+                  <div className="w-full text-center text-white/30">No recent apps</div>
+                )}
+              </div>
+              <button 
+                onClick={() => {
+                  setHistory(['home']);
+                  setActiveApp('home');
+                  setIsRecentsOpen(false);
+                }}
+                className="mt-8 self-center px-8 py-3 glass rounded-full text-white font-bold"
+              >
+                Clear All
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Instructions for the user */}
       <div className="fixed bottom-8 left-8 max-w-xs text-xs text-white/30 font-mono space-y-2 hidden lg:block">
-        <p>NEBULABS OS v1.1.0</p>
+        <p>N LAUNCHER v1.2.0</p>
         <p>• Swipe up on bottom bar for Home</p>
         <p>• Swipe down from status bar for Quick Settings</p>
         <p>• PWA Installable enabled</p>
