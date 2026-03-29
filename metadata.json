@@ -1,0 +1,9 @@
+{
+  "name": "Nebulabs Mobile Launcher",
+  "description": "A futuristic, immersive mobile OS experience for Nebulabs phones featuring working apps, themes, and gesture-based navigation.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
