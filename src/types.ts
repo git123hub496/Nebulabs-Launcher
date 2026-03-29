@@ -31,7 +31,7 @@ import {
   SkipForward
 } from 'lucide-react';
 
-export type AppId = 'home' | 'settings' | 'appstore' | 'camera' | 'weather' | 'music' | 'messages' | 'calendar' | 'browser' | 'profile';
+export type AppId = 'home' | 'settings' | 'appstore' | 'camera' | 'weather' | 'music' | 'messages' | 'calendar' | 'browser' | 'profile' | 'paint' | 'snake' | 'minesweeper' | 'emails' | 'calculator' | 'notes';
 
 export interface UserProfile {
   username: string;

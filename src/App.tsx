@@ -38,7 +38,22 @@ import {
   SkipForward,
   Bluetooth,
   Zap,
-  Flashlight
+  Flashlight,
+  Mail,
+  Shield,
+  Accessibility,
+  Image as ImageIcon,
+  PenTool,
+  Gamepad2,
+  Grid3X3,
+  CheckCircle2,
+  AlertTriangle,
+  Monitor,
+  Type,
+  Calculator,
+  FileText,
+  Trash2,
+  Plus
 } from 'lucide-react';
 
 // --- Mock Apps ---
@@ -245,6 +260,355 @@ const CalendarApp = () => (
   </div>
 );
 
+const EmailsApp = () => (
+  <div className="h-full bg-zinc-950 text-white flex flex-col">
+    <div className="p-6 border-b border-white/5 flex items-center justify-between">
+      <h1 className="text-2xl font-bold font-display">Inbox</h1>
+      <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-xs font-bold">N</div>
+    </div>
+    <div className="flex-1 overflow-y-auto">
+      {[
+        { from: 'Nebula Support', subject: 'Welcome to the Galaxy', body: 'Your account is now active. Explore the stars!', time: '10:00 AM' },
+        { from: 'Star Fleet', subject: 'Mission Update', body: 'The next mission to Andromeda is scheduled for next month.', time: 'Yesterday' },
+        { from: 'Cosmic Bank', subject: 'Statement Ready', body: 'Your monthly stellar credit statement is now available.', time: 'Mar 25' }
+      ].map((email, i) => (
+        <div key={i} className="p-4 border-b border-white/5 hover:bg-white/5 cursor-pointer">
+          <div className="flex justify-between mb-1">
+            <span className="font-bold text-sm">{email.from}</span>
+            <span className="text-[10px] text-zinc-500">{email.time}</span>
+          </div>
+          <div className="text-sm font-medium mb-1">{email.subject}</div>
+          <p className="text-xs text-zinc-400 line-clamp-1">{email.body}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const PaintApp = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [color, setColor] = useState('#9333ea');
+  const [brushSize, setBrushSize] = useState(5);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.lineCap = 'round';
+  }, []);
+
+  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    setIsDrawing(true);
+    draw(e);
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.beginPath();
+  };
+
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = ('touches' in e) ? e.touches[0].clientX - rect.left : (e as React.MouseEvent).clientX - rect.left;
+    const y = ('touches' in e) ? e.touches[0].clientY - rect.top : (e as React.MouseEvent).clientY - rect.top;
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = brushSize;
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const clear = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  return (
+    <div className="h-full bg-zinc-900 flex flex-col">
+      <div className="p-4 flex items-center justify-between bg-zinc-950">
+        <div className="flex gap-2">
+          {['#9333ea', '#ef4444', '#22c55e', '#3b82f6', '#ffffff', '#000000'].map(c => (
+            <button 
+              key={c} 
+              onClick={() => setColor(c)}
+              className={`w-6 h-6 rounded-full border-2 ${color === c ? 'border-white' : 'border-transparent'}`}
+              style={{ backgroundColor: c }}
+            />
+          ))}
+        </div>
+        <div className="flex items-center gap-4">
+          <input 
+            type="range" 
+            min="1" 
+            max="20" 
+            value={brushSize} 
+            onChange={(e) => setBrushSize(parseInt(e.target.value))}
+            className="w-20 accent-purple-500"
+          />
+          <button onClick={clear} className="text-xs font-bold text-zinc-400 hover:text-white">CLEAR</button>
+        </div>
+      </div>
+      <canvas 
+        ref={canvasRef}
+        width={400}
+        height={600}
+        onMouseDown={startDrawing}
+        onMouseUp={stopDrawing}
+        onMouseMove={draw}
+        onTouchStart={startDrawing}
+        onTouchEnd={stopDrawing}
+        onTouchMove={draw}
+        className="flex-1 w-full h-full bg-white cursor-crosshair"
+      />
+    </div>
+  );
+};
+
+const CalculatorApp = () => {
+  const [display, setDisplay] = useState('0');
+  const [prevValue, setPrevValue] = useState<number | null>(null);
+  const [op, setOp] = useState<string | null>(null);
+
+  const handleNum = (n: string) => {
+    setDisplay(display === '0' ? n : display + n);
+  };
+
+  const handleOp = (nextOp: string) => {
+    setPrevValue(parseFloat(display));
+    setOp(nextOp);
+    setDisplay('0');
+  };
+
+  const calculate = () => {
+    if (prevValue === null || op === null) return;
+    const current = parseFloat(display);
+    let result = 0;
+    if (op === '+') result = prevValue + current;
+    if (op === '-') result = prevValue - current;
+    if (op === '*') result = prevValue * current;
+    if (op === '/') result = prevValue / current;
+    setDisplay(result.toString());
+    setPrevValue(null);
+    setOp(null);
+  };
+
+  const clear = () => {
+    setDisplay('0');
+    setPrevValue(null);
+    setOp(null);
+  };
+
+  return (
+    <div className="h-full bg-black text-white p-6 flex flex-col">
+      <div className="flex-1 flex flex-col justify-end text-right mb-8">
+        <div className="text-zinc-500 text-sm h-6">{prevValue} {op}</div>
+        <div className="text-6xl font-light overflow-hidden">{display}</div>
+      </div>
+      <div className="grid grid-cols-4 gap-3">
+        <button onClick={clear} className="aspect-square rounded-full bg-zinc-800 text-xl font-bold flex items-center justify-center">C</button>
+        <button onClick={() => handleOp('/')} className="aspect-square rounded-full bg-zinc-800 text-xl font-bold flex items-center justify-center text-purple-400">÷</button>
+        <button onClick={() => handleOp('*')} className="aspect-square rounded-full bg-zinc-800 text-xl font-bold flex items-center justify-center text-purple-400">×</button>
+        <button onClick={() => handleOp('-')} className="aspect-square rounded-full bg-zinc-800 text-xl font-bold flex items-center justify-center text-purple-400">−</button>
+        
+        {[7, 8, 9].map(n => <button key={n} onClick={() => handleNum(n.toString())} className="aspect-square rounded-full bg-zinc-900 text-xl font-bold flex items-center justify-center">{n}</button>)}
+        <button onClick={() => handleOp('+')} className="aspect-square rounded-full bg-zinc-800 text-xl font-bold flex items-center justify-center text-purple-400">+</button>
+        
+        {[4, 5, 6].map(n => <button key={n} onClick={() => handleNum(n.toString())} className="aspect-square rounded-full bg-zinc-900 text-xl font-bold flex items-center justify-center">{n}</button>)}
+        <button onClick={calculate} className="row-span-2 aspect-[1/2] rounded-full bg-purple-600 text-xl font-bold flex items-center justify-center">=</button>
+        
+        {[1, 2, 3].map(n => <button key={n} onClick={() => handleNum(n.toString())} className="aspect-square rounded-full bg-zinc-900 text-xl font-bold flex items-center justify-center">{n}</button>)}
+        
+        <button onClick={() => handleNum('0')} className="col-span-2 rounded-full bg-zinc-900 text-xl font-bold flex items-center justify-center">0</button>
+        <button onClick={() => handleNum('.')} className="aspect-square rounded-full bg-zinc-900 text-xl font-bold flex items-center justify-center">.</button>
+      </div>
+    </div>
+  );
+};
+
+const NotesApp = () => {
+  const [notes, setNotes] = useState<{id: number, text: string}[]>([]);
+  const [currentNote, setCurrentNote] = useState<string>('');
+  const [isAdding, setIsAdding] = useState(false);
+
+  const addNote = () => {
+    if (!currentNote.trim()) return;
+    setNotes([{ id: Date.now(), text: currentNote }, ...notes]);
+    setCurrentNote('');
+    setIsAdding(false);
+  };
+
+  const deleteNote = (id: number) => {
+    setNotes(notes.filter(n => n.id !== id));
+  };
+
+  return (
+    <div className="h-full bg-zinc-950 text-white flex flex-col">
+      <div className="p-6 border-b border-white/5 flex items-center justify-between">
+        <h1 className="text-2xl font-bold font-display">Notes</h1>
+        <button onClick={() => setIsAdding(true)} className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center">
+          <Plus size={24} />
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {isAdding && (
+          <div className="glass p-4 rounded-2xl space-y-4">
+            <textarea 
+              autoFocus
+              value={currentNote}
+              onChange={(e) => setCurrentNote(e.target.value)}
+              placeholder="Write something..."
+              className="w-full bg-transparent border-none outline-none text-sm resize-none h-32"
+            />
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setIsAdding(false)} className="px-4 py-2 text-xs font-bold text-zinc-500">CANCEL</button>
+              <button onClick={addNote} className="px-4 py-2 bg-purple-600 rounded-full text-xs font-bold">SAVE</button>
+            </div>
+          </div>
+        )}
+        {notes.length === 0 && !isAdding && (
+          <div className="flex flex-col items-center justify-center h-64 text-zinc-600">
+            <FileText size={48} className="mb-4 opacity-20" />
+            <p>No notes yet</p>
+          </div>
+        )}
+        {notes.map(note => (
+          <div key={note.id} className="glass p-4 rounded-2xl group">
+            <div className="flex justify-between items-start gap-4">
+              <p className="text-sm flex-1 whitespace-pre-wrap">{note.text}</p>
+              <button onClick={() => deleteNote(note.id)} className="text-zinc-600 hover:text-red-500 transition-colors">
+                <Trash2 size={16} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const SnakeApp = () => {
+  const [snake, setSnake] = useState([{ x: 10, y: 10 }]);
+  const [food, setFood] = useState({ x: 15, y: 15 });
+  const [dir, setDir] = useState({ x: 0, y: -1 });
+  const [gameOver, setGameOver] = useState(false);
+  const [score, setScore] = useState(0);
+
+  useEffect(() => {
+    if (gameOver) return;
+    const move = setInterval(() => {
+      setSnake(prev => {
+        const head = { x: prev[0].x + dir.x, y: prev[0].y + dir.y };
+        if (head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20 || prev.some(s => s.x === head.x && s.y === head.y)) {
+          setGameOver(true);
+          return prev;
+        }
+        const newSnake = [head, ...prev];
+        if (head.x === food.x && head.y === food.y) {
+          setScore(s => s + 1);
+          setFood({ x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 20) });
+        } else {
+          newSnake.pop();
+        }
+        return newSnake;
+      });
+    }, 150);
+    return () => clearInterval(move);
+  }, [dir, food, gameOver]);
+
+  return (
+    <div className="h-full bg-zinc-950 flex flex-col items-center justify-center p-8">
+      <div className="mb-4 flex justify-between w-full text-white font-bold">
+        <span>Score: {score}</span>
+        {gameOver && <span className="text-red-500">GAME OVER</span>}
+      </div>
+      <div className="grid grid-cols-20 grid-rows-20 w-full aspect-square bg-zinc-900 border border-white/10 relative">
+        {snake.map((s, i) => (
+          <div key={i} className="absolute bg-green-500 w-[5%] h-[5%]" style={{ left: `${s.x * 5}%`, top: `${s.y * 5}%` }} />
+        ))}
+        <div className="absolute bg-red-500 w-[5%] h-[5%] rounded-full" style={{ left: `${food.x * 5}%`, top: `${food.y * 5}%` }} />
+      </div>
+      <div className="mt-8 grid grid-cols-3 gap-2">
+        <div />
+        <button onClick={() => setDir({ x: 0, y: -1 })} className="p-4 bg-white/10 rounded-xl text-white"><ChevronLeft className="rotate-90" /></button>
+        <div />
+        <button onClick={() => setDir({ x: -1, y: 0 })} className="p-4 bg-white/10 rounded-xl text-white"><ChevronLeft /></button>
+        <button onClick={() => setDir({ x: 0, y: 1 })} className="p-4 bg-white/10 rounded-xl text-white"><ChevronLeft className="-rotate-90" /></button>
+        <button onClick={() => setDir({ x: 1, y: 0 })} className="p-4 bg-white/10 rounded-xl text-white"><ChevronLeft className="rotate-180" /></button>
+      </div>
+      {gameOver && <button onClick={() => { setSnake([{ x: 10, y: 10 }]); setGameOver(false); setScore(0); }} className="mt-4 text-purple-400 font-bold">RESTART</button>}
+    </div>
+  );
+};
+
+const MinesweeperApp = () => {
+  const [grid, setGrid] = useState<any[]>([]);
+  const [gameOver, setGameOver] = useState(false);
+
+  const initGrid = () => {
+    const newGrid = Array.from({ length: 100 }, (_, i) => ({
+      id: i,
+      isMine: Math.random() < 0.15,
+      revealed: false,
+      neighborMines: 0
+    }));
+    setGrid(newGrid);
+    setGameOver(false);
+  };
+
+  useEffect(() => { initGrid(); }, []);
+
+  const reveal = (id: number) => {
+    if (gameOver || grid[id].revealed) return;
+    if (grid[id].isMine) {
+      setGameOver(true);
+      setGrid(grid.map(c => ({ ...c, revealed: true })));
+      return;
+    }
+    const newGrid = [...grid];
+    newGrid[id].revealed = true;
+    setGrid(newGrid);
+  };
+
+  return (
+    <div className="h-full bg-zinc-950 flex flex-col items-center justify-center p-6">
+      <h2 className="text-2xl font-bold text-white mb-6 font-display">Minesweeper</h2>
+      <div className="grid grid-cols-10 gap-1 bg-zinc-900 p-2 rounded-xl border border-white/10">
+        {grid.map(cell => (
+          <button 
+            key={cell.id}
+            onClick={() => reveal(cell.id)}
+            className={`w-7 h-7 rounded-sm flex items-center justify-center text-xs font-bold transition-colors ${
+              cell.revealed 
+                ? (cell.isMine ? 'bg-red-500' : 'bg-zinc-700 text-white') 
+                : 'bg-zinc-800 hover:bg-zinc-700'
+            }`}
+          >
+            {cell.revealed && cell.isMine && <X size={12} />}
+          </button>
+        ))}
+      </div>
+      <button onClick={initGrid} className="mt-8 bg-white text-black px-6 py-2 rounded-full font-bold text-sm">NEW GAME</button>
+    </div>
+  );
+};
+
 const AppStoreApp = ({ installedAppIds, onInstall }: { 
   installedAppIds: string[], 
   onInstall: (id: AppId) => void 
@@ -255,6 +619,12 @@ const AppStoreApp = ({ installedAppIds, onInstall }: {
     { id: 'browser', name: 'Nebula Browser', desc: 'Fast and secure browsing', icon: Globe, color: 'bg-purple-500' },
     { id: 'weather', name: 'Weather', desc: 'Real-time stellar forecasts', icon: Cloud, color: 'bg-sky-400' },
     { id: 'music', name: 'Stellar Music', desc: 'The rhythm of the cosmos', icon: MusicIcon, color: 'bg-pink-600' },
+    { id: 'emails', name: 'Nebula Mail', desc: 'Cosmic communication', icon: Mail, color: 'bg-indigo-600' },
+    { id: 'paint', name: 'Nebula Paint', desc: 'Draw your own galaxy', icon: PenTool, color: 'bg-orange-500' },
+    { id: 'snake', name: 'Stellar Snake', desc: 'Classic space snake', icon: Gamepad2, color: 'bg-green-600' },
+    { id: 'minesweeper', name: 'Star Sweeper', desc: 'Clear the minefield', icon: Grid3X3, color: 'bg-zinc-700' },
+    { id: 'calculator', name: 'Nebula Calc', desc: 'Stellar calculations', icon: Calculator, color: 'bg-orange-600' },
+    { id: 'notes', name: 'Nebula Notes', desc: 'Keep your thoughts in orbit', icon: FileText, color: 'bg-yellow-600' },
   ];
 
   return (
@@ -311,7 +681,13 @@ const SettingsApp = ({
   setAccent,
   profile, 
   setProfile, 
-  onOpenProfile 
+  onOpenProfile,
+  wallpaper,
+  setWallpaper,
+  reduceMotion,
+  setReduceMotion,
+  deviceName,
+  setDeviceName
 }: { 
   theme: Theme, 
   setTheme: (t: Theme) => void,
@@ -319,87 +695,366 @@ const SettingsApp = ({
   setAccent: (a: string) => void,
   profile: UserProfile,
   setProfile: (p: UserProfile) => void,
-  onOpenProfile: () => void
-}) => (
-  <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
-    <h1 className="text-3xl font-bold mb-8 font-display">Settings</h1>
-    
-    <div className="space-y-6">
-      <section 
-        className="glass rounded-2xl overflow-hidden cursor-pointer active:scale-95 transition-transform"
-        onClick={onOpenProfile}
-      >
-        <div className="p-4 border-b border-white/5 flex items-center gap-4">
-          <img 
-            src={profile.avatar} 
-            alt="Avatar" 
-            className="w-12 h-12 rounded-full object-cover"
-            referrerPolicy="no-referrer"
-          />
-          <div className="flex-1">
-            <h3 className="font-bold">{profile.username}</h3>
-            <p className="text-xs text-zinc-400">View Profile</p>
-          </div>
-          <ChevronLeft size={16} className="rotate-180 opacity-30" />
-        </div>
-      </section>
+  onOpenProfile: () => void,
+  wallpaper: string,
+  setWallpaper: (w: string) => void,
+  reduceMotion: boolean,
+  setReduceMotion: (v: boolean) => void,
+  deviceName: string,
+  setDeviceName: (v: string) => void
+}) => {
+  const [activeSection, setActiveSection] = useState<'main' | 'wallpaper' | 'about' | 'safety' | 'accessibility' | 'medical'>('main');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateProgress, setUpdateProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-      <section className="glass rounded-2xl p-4 space-y-4">
-        <div className="flex items-center gap-3">
-          <Palette className="text-zinc-400" size={20} />
-          <span className="font-bold">Appearance</span>
+  const PREMADE_WALLPAPERS = [
+    'https://picsum.photos/seed/nebula1/1080/1920',
+    'https://picsum.photos/seed/nebula2/1080/1920',
+    'https://picsum.photos/seed/nebula3/1080/1920',
+    'https://picsum.photos/seed/nebula4/1080/1920',
+    'https://picsum.photos/seed/nebula5/1080/1920',
+    'https://picsum.photos/seed/nebula6/1080/1920',
+  ];
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setWallpaper(event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const startUpdate = () => {
+    setIsUpdating(true);
+    setUpdateProgress(0);
+    const interval = setInterval(() => {
+      setUpdateProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setIsUpdating(false);
+          return 100;
+        }
+        return prev + 2;
+      });
+    }, 50);
+  };
+
+  if (activeSection === 'wallpaper') {
+    return (
+      <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
+          <h1 className="text-2xl font-bold font-display">Wallpaper</h1>
         </div>
-        
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          {PREMADE_WALLPAPERS.map((wp, i) => (
+            <button 
+              key={i} 
+              onClick={() => setWallpaper(wp)}
+              className={`aspect-[9/16] rounded-2xl overflow-hidden border-2 transition-all ${wallpaper === wp ? 'border-purple-500 scale-95' : 'border-transparent'}`}
+            >
+              <img src={wp} alt={`Wallpaper ${i}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            </button>
+          ))}
+        </div>
+        <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*" />
+        <button 
+          onClick={() => fileInputRef.current?.click()}
+          className="w-full glass p-4 rounded-2xl flex items-center justify-center gap-3 font-bold"
+        >
+          <ImageIcon size={20} />
+          Upload Custom Wallpaper
+        </button>
+      </div>
+    );
+  }
+
+  if (activeSection === 'about') {
+    return (
+      <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
+          <h1 className="text-2xl font-bold font-display">About Phone</h1>
+        </div>
         <div className="space-y-4">
-          <div>
-            <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2 block">Theme</label>
-            <div className="grid grid-cols-3 gap-2">
-              {THEMES.map(t => (
-                <button 
-                  key={t.id}
-                  onClick={() => setTheme(t)}
-                  className={`p-3 rounded-xl border-2 transition-all ${theme.id === t.id ? 'border-white/20 bg-white/10' : 'border-transparent bg-white/5'}`}
-                >
-                  <div className="text-[10px] font-bold">{t.name}</div>
-                </button>
-              ))}
+          <div className="glass p-6 rounded-3xl flex flex-col items-center text-center">
+            <div className="w-20 h-20 bg-purple-600 rounded-3xl flex items-center justify-center mb-4 shadow-xl">
+              <Smartphone size={40} />
             </div>
+            <input 
+              type="text" 
+              value={deviceName}
+              onChange={(e) => setDeviceName(e.target.value)}
+              className="text-xl font-bold bg-transparent border-none outline-none text-center w-full focus:text-purple-400"
+            />
+            <p className="text-zinc-500 text-sm">Model: NP-2026-X</p>
+          </div>
+          
+          <div className="glass p-4 rounded-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-bold">Software Update</span>
+              {isUpdating ? (
+                <span className="text-xs text-purple-400 font-bold">{updateProgress}%</span>
+              ) : (
+                <button onClick={startUpdate} className="text-xs text-purple-400 font-bold">CHECK</button>
+              )}
+            </div>
+            {isUpdating && (
+              <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full bg-purple-500 transition-all duration-300" style={{ width: `${updateProgress}%` }} />
+              </div>
+            )}
+            {!isUpdating && updateProgress === 100 && (
+              <p className="text-[10px] text-green-500 font-bold">System is up to date</p>
+            )}
           </div>
 
-          <div>
-            <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2 block">Accent Color</label>
-            <div className="grid grid-cols-6 gap-2">
-              {ACCENT_COLORS.map(c => (
-                <button 
-                  key={c.id}
-                  onClick={() => setAccent(c.hex)}
-                  className={`w-8 h-8 rounded-full border-2 transition-all ${accent === c.hex ? 'border-white scale-110' : 'border-transparent'}`}
-                  style={{ backgroundColor: c.hex }}
-                />
-              ))}
+          <div className="glass rounded-2xl overflow-hidden">
+            {[
+              { label: 'OS Version', value: 'Nebulabs OS 1.1.0' },
+              { label: 'Processor', value: 'Stellar X1' },
+              { label: 'RAM', value: '12GB' },
+              { label: 'Storage', value: '256GB' },
+              { label: 'Serial Number', value: 'SN-9928-X-001' }
+            ].map(item => (
+              <div key={item.label} className="p-4 border-b border-white/5 flex justify-between items-center">
+                <span className="text-zinc-400 text-sm">{item.label}</span>
+                <span className="font-medium">{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (activeSection === 'safety') {
+    return (
+      <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
+          <h1 className="text-2xl font-bold font-display">Safety & Emergency</h1>
+        </div>
+        <div className="space-y-6">
+          <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl flex items-start gap-4">
+            <AlertTriangle className="text-red-500 shrink-0" size={24} />
+            <div>
+              <h3 className="font-bold text-red-500">Emergency SOS</h3>
+              <p className="text-xs text-zinc-400">Press the power button 5 times to call emergency services.</p>
+            </div>
+          </div>
+          <div className="glass rounded-2xl p-4 space-y-4">
+            <button 
+              onClick={() => setActiveSection('medical')}
+              className="w-full flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <User className="text-blue-400" size={20} />
+                <span>Medical ID</span>
+              </div>
+              <ChevronLeft size={16} className="rotate-180 opacity-30" />
+            </button>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Bell className="text-orange-400" size={20} />
+                <span>Earthquake Alerts</span>
+              </div>
+              <div className="w-10 h-5 bg-purple-600 rounded-full relative">
+                <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" />
+              </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    );
+  }
 
-      <section className="glass rounded-2xl p-4 space-y-4">
-        {[
-          { icon: Bell, label: 'Notifications', color: 'text-red-400' },
-          { icon: Lock, label: 'Privacy & Security', color: 'text-green-400' },
-          { icon: Info, label: 'About Phone', color: 'text-blue-400' }
-        ].map(item => (
-          <div key={item.label} className="flex items-center justify-between py-1">
-            <div className="flex items-center gap-3">
-              <item.icon className={item.color} size={20} />
-              <span>{item.label}</span>
+  if (activeSection === 'medical') {
+    return (
+      <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={() => setActiveSection('safety')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
+          <h1 className="text-2xl font-bold font-display">Medical ID</h1>
+        </div>
+        <div className="space-y-4">
+          <div className="glass p-6 rounded-3xl flex flex-col items-center text-center">
+            <img src={profile.avatar} alt="Avatar" className="w-20 h-20 rounded-full mb-4 border-2 border-red-500" referrerPolicy="no-referrer" />
+            <h2 className="text-xl font-bold">{profile.username}</h2>
+          </div>
+          <div className="glass rounded-2xl overflow-hidden">
+            {[
+              { label: 'Blood Type', value: 'O+' },
+              { label: 'Allergies', value: 'None' },
+              { label: 'Medications', value: 'None' },
+              { label: 'Emergency Contact', value: 'Nova (+1 555-0123)' }
+            ].map(item => (
+              <div key={item.label} className="p-4 border-b border-white/5">
+                <div className="text-zinc-500 text-[10px] uppercase font-bold mb-1">{item.label}</div>
+                <div className="font-medium">{item.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (activeSection === 'accessibility') {
+    return (
+      <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
+          <h1 className="text-2xl font-bold font-display">Accessibility</h1>
+        </div>
+        <div className="space-y-4">
+          <div className="glass rounded-2xl p-4 space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Type className="text-zinc-400" size={20} />
+                <div className="flex flex-col">
+                  <span className="font-bold">Font Size</span>
+                  <span className="text-[10px] text-zinc-500">Adjust text size for better readability</span>
+                </div>
+              </div>
+              <span className="text-purple-400 font-bold">Medium</span>
+            </div>
+            <button 
+              onClick={() => setReduceMotion(!reduceMotion)}
+              className="w-full flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <Zap className="text-zinc-400" size={20} />
+                <div className="flex flex-col text-left">
+                  <span className="font-bold">Reduce Motion</span>
+                  <span className="text-[10px] text-zinc-500">Minimize animations and transitions</span>
+                </div>
+              </div>
+              <div className={`w-10 h-5 rounded-full relative transition-colors ${reduceMotion ? 'bg-purple-600' : 'bg-zinc-800'}`}>
+                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${reduceMotion ? 'right-1' : 'left-1'}`} />
+              </div>
+            </button>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Monitor className="text-zinc-400" size={20} />
+                <div className="flex flex-col">
+                  <span className="font-bold">High Contrast</span>
+                  <span className="text-[10px] text-zinc-500">Increase contrast for UI elements</span>
+                </div>
+              </div>
+              <div className="w-10 h-5 bg-zinc-800 rounded-full relative">
+                <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
+      <h1 className="text-3xl font-bold mb-8 font-display">Settings</h1>
+      
+      <div className="space-y-6">
+        <section 
+          className="glass rounded-2xl overflow-hidden cursor-pointer active:scale-95 transition-transform"
+          onClick={onOpenProfile}
+        >
+          <div className="p-4 border-b border-white/5 flex items-center gap-4">
+            <img 
+              src={profile.avatar} 
+              alt="Avatar" 
+              className="w-12 h-12 rounded-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+            <div className="flex-1">
+              <h3 className="font-bold">{profile.username}</h3>
+              <p className="text-xs text-zinc-400">View Profile</p>
             </div>
             <ChevronLeft size={16} className="rotate-180 opacity-30" />
           </div>
-        ))}
-      </section>
+        </section>
+
+        <section className="glass rounded-2xl p-4 space-y-4">
+          <div className="flex items-center gap-3">
+            <Palette className="text-zinc-400" size={20} />
+            <span className="font-bold">Appearance</span>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2 block">Theme</label>
+              <div className="grid grid-cols-3 gap-2">
+                {THEMES.map(t => (
+                  <button 
+                    key={t.id}
+                    onClick={() => setTheme(t)}
+                    className={`p-3 rounded-xl border-2 transition-all ${theme.id === t.id ? 'border-white/20 bg-white/10' : 'border-transparent bg-white/5'}`}
+                  >
+                    <div className="text-[10px] font-bold">{t.name}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2 block">Accent Color</label>
+              <div className="grid grid-cols-6 gap-2">
+                {ACCENT_COLORS.map(c => (
+                  <button 
+                    key={c.id}
+                    onClick={() => setAccent(c.hex)}
+                    className={`w-8 h-8 rounded-full border-2 transition-all ${accent === c.hex ? 'border-white scale-110' : 'border-transparent'}`}
+                    style={{ backgroundColor: c.hex }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setActiveSection('wallpaper')}
+              className="w-full flex items-center justify-between py-2 border-t border-white/5 mt-2"
+            >
+              <div className="flex items-center gap-3">
+                <ImageIcon className="text-zinc-400" size={18} />
+                <span>Wallpaper</span>
+              </div>
+              <ChevronLeft size={16} className="rotate-180 opacity-30" />
+            </button>
+          </div>
+        </section>
+
+        <section className="glass rounded-2xl p-4 space-y-4">
+          {[
+            { icon: Bell, label: 'Notifications', color: 'text-red-400', section: null },
+            { icon: Lock, label: 'Privacy & Security', color: 'text-green-400', section: null },
+            { icon: Shield, label: 'Safety & Emergency', color: 'text-red-500', section: 'safety' },
+            { icon: Accessibility, label: 'Accessibility', color: 'text-purple-400', section: 'accessibility' },
+            { icon: Info, label: 'About Phone', color: 'text-blue-400', section: 'about' }
+          ].map(item => (
+            <button 
+              key={item.label} 
+              onClick={() => item.section && setActiveSection(item.section as any)}
+              className="w-full flex items-center justify-between py-1"
+            >
+              <div className="flex items-center gap-3">
+                <item.icon className={item.color} size={20} />
+                <span>{item.label}</span>
+              </div>
+              <ChevronLeft size={16} className="rotate-180 opacity-30" />
+            </button>
+          ))}
+        </section>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const CameraApp = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -444,14 +1099,34 @@ const CameraApp = () => {
 
 export default function App() {
   const [activeApp, setActiveApp] = useState<AppId>('home');
-  const [theme, setTheme] = useState<Theme>(THEMES[0]);
-  const [accentColor, setAccentColor] = useState('#9333ea'); // Default purple
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = localStorage.getItem('nebula_theme');
+    return saved ? JSON.parse(saved) : THEMES[0];
+  });
+  const [accentColor, setAccentColor] = useState(() => {
+    return localStorage.getItem('nebula_accent') || '#9333ea';
+  });
   const [time, setTime] = useState(new Date());
   const [isControlCenterOpen, setIsControlCenterOpen] = useState(false);
   const [isAppDrawerOpen, setIsAppDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
-  const [installedAppIds, setInstalledAppIds] = useState<string[]>(['browser', 'weather', 'music', 'appstore', 'camera', 'settings']);
+  const [profile, setProfile] = useState<UserProfile>(() => {
+    const saved = localStorage.getItem('nebula_profile');
+    return saved ? JSON.parse(saved) : DEFAULT_PROFILE;
+  });
+  const [installedAppIds, setInstalledAppIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('nebula_installed_apps');
+    return saved ? JSON.parse(saved) : ['browser', 'weather', 'music', 'appstore', 'camera', 'settings'];
+  });
+  const [wallpaper, setWallpaper] = useState(() => {
+    return localStorage.getItem('nebula_wallpaper') || 'https://picsum.photos/seed/nebulabs-bg/1080/1920';
+  });
+  const [reduceMotion, setReduceMotion] = useState(() => {
+    return localStorage.getItem('nebula_reduce_motion') === 'true';
+  });
+  const [deviceName, setDeviceName] = useState(() => {
+    return localStorage.getItem('nebula_device_name') || 'Nebula Phone 1';
+  });
 
   // Quick Settings States
   const [wifiEnabled, setWifiEnabled] = useState(true);
@@ -464,16 +1139,32 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem('nebula_theme', JSON.stringify(theme));
+    localStorage.setItem('nebula_accent', accentColor);
+    localStorage.setItem('nebula_profile', JSON.stringify(profile));
+    localStorage.setItem('nebula_installed_apps', JSON.stringify(installedAppIds));
+    localStorage.setItem('nebula_wallpaper', wallpaper);
+    localStorage.setItem('nebula_reduce_motion', reduceMotion.toString());
+    localStorage.setItem('nebula_device_name', deviceName);
+  }, [theme, accentColor, profile, installedAppIds, wallpaper, reduceMotion, deviceName]);
+
   const apps: AppConfig[] = [
     { id: 'browser', name: 'Browser', icon: Globe, color: 'bg-blue-500', component: BrowserApp },
     { id: 'weather', name: 'Weather', icon: Cloud, color: 'bg-sky-400', component: WeatherApp },
     { id: 'music', name: 'Music', icon: MusicIcon, color: 'bg-purple-600', component: MusicApp },
     { id: 'appstore', name: 'Store', icon: ShoppingBag, color: 'bg-zinc-800', component: () => <AppStoreApp installedAppIds={installedAppIds} onInstall={toggleInstall} /> },
     { id: 'camera', name: 'Camera', icon: CameraIcon, color: 'bg-zinc-700', component: CameraApp },
-    { id: 'settings', name: 'Settings', icon: SettingsIcon, color: 'bg-zinc-600', component: () => <SettingsApp theme={theme} setTheme={setTheme} accent={accentColor} setAccent={setAccentColor} profile={profile} setProfile={setProfile} onOpenProfile={() => setActiveApp('profile')} /> },
+    { id: 'settings', name: 'Settings', icon: SettingsIcon, color: 'bg-zinc-600', component: () => <SettingsApp theme={theme} setTheme={setTheme} accent={accentColor} setAccent={setAccentColor} profile={profile} setProfile={setProfile} onOpenProfile={() => setActiveApp('profile')} wallpaper={wallpaper} setWallpaper={setWallpaper} reduceMotion={reduceMotion} setReduceMotion={setReduceMotion} deviceName={deviceName} setDeviceName={setDeviceName} /> },
     { id: 'profile', name: 'Profile', icon: User, color: 'bg-indigo-500', component: () => <ProfileApp profile={profile} setProfile={setProfile} /> },
     { id: 'messages', name: 'Messages', icon: MessageSquare, color: 'bg-blue-500', component: MessagesApp },
     { id: 'calendar', name: 'Calendar', icon: CalendarIcon, color: 'bg-green-500', component: CalendarApp },
+    { id: 'emails', name: 'Emails', icon: Mail, color: 'bg-indigo-600', component: EmailsApp },
+    { id: 'paint', name: 'Paint', icon: PenTool, color: 'bg-orange-500', component: PaintApp },
+    { id: 'snake', name: 'Snake', icon: Gamepad2, color: 'bg-green-600', component: SnakeApp },
+    { id: 'minesweeper', name: 'Sweeper', icon: Grid3X3, color: 'bg-zinc-700', component: MinesweeperApp },
+    { id: 'calculator', name: 'Calculator', icon: Calculator, color: 'bg-orange-600', component: CalculatorApp },
+    { id: 'notes', name: 'Notes', icon: FileText, color: 'bg-yellow-600', component: NotesApp },
   ];
 
   const toggleInstall = (id: AppId) => {
@@ -490,6 +1181,12 @@ export default function App() {
 
   return (
     <div className={`fixed inset-0 flex items-center justify-center ${theme.bg} transition-colors duration-700`}>
+      {/* Wallpaper */}
+      <div className="absolute inset-0 z-0">
+        <img src={wallpaper} alt="Wallpaper" className="w-full h-full object-cover opacity-40 blur-[2px]" referrerPolicy="no-referrer" />
+        <div className="absolute inset-0 bg-black/40" />
+      </div>
+
       {/* Background Nebula Effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] blur-[120px] rounded-full animate-pulse" style={{ backgroundColor: `${accentColor}20` }} />
@@ -520,9 +1217,10 @@ export default function App() {
             {activeApp === 'home' ? (
               <motion.div 
                 key="home"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.1 }}
+                initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
+                animate={reduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+                exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 1.1 }}
+                transition={reduceMotion ? { duration: 0.2 } : {}}
                 drag="y"
                 dragConstraints={{ top: 0, bottom: 0 }}
                 onDragEnd={(_, info) => {
@@ -582,10 +1280,10 @@ export default function App() {
             ) : (
               <motion.div
                 key={activeApp}
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                initial={reduceMotion ? { opacity: 0 } : { y: '100%' }}
+                animate={reduceMotion ? { opacity: 1 } : { y: 0 }}
+                exit={reduceMotion ? { opacity: 0 } : { y: '100%' }}
+                transition={reduceMotion ? { duration: 0.2 } : { type: 'spring', damping: 25, stiffness: 200 }}
                 className="absolute inset-0 z-40"
               >
                 {apps.find(a => a.id === activeApp)?.component({})}
@@ -597,10 +1295,10 @@ export default function App() {
           <AnimatePresence>
             {isAppDrawerOpen && (
               <motion.div
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 30, stiffness: 200 }}
+                initial={reduceMotion ? { opacity: 0 } : { y: '100%' }}
+                animate={reduceMotion ? { opacity: 1 } : { y: 0 }}
+                exit={reduceMotion ? { opacity: 0 } : { y: '100%' }}
+                transition={reduceMotion ? { duration: 0.2 } : { type: 'spring', damping: 30, stiffness: 200 }}
                 drag="y"
                 dragConstraints={{ top: 0 }}
                 onDragEnd={(_, info) => {
@@ -663,10 +1361,10 @@ export default function App() {
           <AnimatePresence>
             {isControlCenterOpen && (
               <motion.div
-                initial={{ y: '-100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '-100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 150 }}
+                initial={reduceMotion ? { opacity: 0 } : { y: '-100%' }}
+                animate={reduceMotion ? { opacity: 1 } : { y: 0 }}
+                exit={reduceMotion ? { opacity: 0 } : { y: '-100%' }}
+                transition={reduceMotion ? { duration: 0.2 } : { type: 'spring', damping: 25, stiffness: 150 }}
                 className="absolute inset-0 z-[100] glass p-8 pt-16 flex flex-col gap-6"
               >
                 <div className="flex items-center justify-between mb-2">
