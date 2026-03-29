@@ -199,38 +199,124 @@ const MusicApp = () => (
   </div>
 );
 
-const AppStoreApp = () => (
-  <div className="h-full bg-black text-white p-6 overflow-y-auto">
-    <h1 className="text-4xl font-bold mb-8 font-display">Nebula Store</h1>
-    <div className="space-y-8">
-      <section>
-        <h2 className="text-xl font-semibold mb-4 text-zinc-400">Featured Apps</h2>
-        <div className="grid grid-cols-1 gap-4">
-          {[
-            { name: 'Quantum Chat', desc: 'Secure messaging for the stars', icon: MessageSquare, color: 'bg-blue-500' },
-            { name: 'Star Map', desc: 'Navigate the galaxy', icon: Globe, color: 'bg-green-500' },
-            { name: 'Nebula Pay', desc: 'Digital currency simplified', icon: Smartphone, color: 'bg-purple-500' }
-          ].map(app => (
-            <div key={app.name} className="glass p-4 rounded-2xl flex items-center gap-4">
-              <div className={`${app.color} w-12 h-12 rounded-xl flex items-center justify-center`}>
-                <app.icon size={24} />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold">{app.name}</h3>
-                <p className="text-xs text-zinc-400">{app.desc}</p>
-              </div>
-              <button className="bg-white text-black text-xs font-bold px-4 py-2 rounded-full">GET</button>
-            </div>
-          ))}
+const MessagesApp = () => (
+  <div className="h-full bg-zinc-950 text-white flex flex-col">
+    <div className="p-6 border-b border-white/5">
+      <h1 className="text-2xl font-bold font-display">Messages</h1>
+    </div>
+    <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+      {[
+        { from: 'Nova', text: 'Did you see the meteor shower?', time: '10:24 AM' },
+        { from: 'Cosmo', text: 'The new Nebula OS is fire!', time: 'Yesterday' },
+        { from: 'Stellar', text: 'Meeting at the space dock at 5.', time: 'Monday' }
+      ].map((msg, i) => (
+        <div key={i} className="glass p-4 rounded-2xl">
+          <div className="flex justify-between mb-1">
+            <span className="font-bold text-purple-400">{msg.from}</span>
+            <span className="text-[10px] text-zinc-500">{msg.time}</span>
+          </div>
+          <p className="text-sm">{msg.text}</p>
         </div>
-      </section>
+      ))}
     </div>
   </div>
 );
 
-const SettingsApp = ({ theme, setTheme, profile, setProfile, onOpenProfile }: { 
+const CalendarApp = () => (
+  <div className="h-full bg-zinc-950 text-white p-6">
+    <h1 className="text-2xl font-bold font-display mb-8">Calendar</h1>
+    <div className="grid grid-cols-7 gap-2 mb-8">
+      {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
+        <div key={d} className="text-center text-[10px] font-bold text-zinc-500">{d}</div>
+      ))}
+      {Array.from({ length: 31 }).map((_, i) => (
+        <div key={i} className={`aspect-square flex items-center justify-center rounded-lg text-sm ${i === 28 ? 'bg-purple-600 font-bold' : 'hover:bg-white/5'}`}>
+          {i + 1}
+        </div>
+      ))}
+    </div>
+    <div className="space-y-4">
+      <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Upcoming Events</h3>
+      <div className="glass p-4 rounded-2xl border-l-4 border-purple-500">
+        <div className="font-bold">Nebula Launch Event</div>
+        <div className="text-xs text-zinc-400">2:00 PM - 4:00 PM</div>
+      </div>
+    </div>
+  </div>
+);
+
+const AppStoreApp = ({ installedAppIds, onInstall }: { 
+  installedAppIds: string[], 
+  onInstall: (id: AppId) => void 
+}) => {
+  const storeApps = [
+    { id: 'messages', name: 'Quantum Chat', desc: 'Secure messaging for the stars', icon: MessageSquare, color: 'bg-blue-500' },
+    { id: 'calendar', name: 'Star Map', desc: 'Navigate the galaxy', icon: CalendarIcon, color: 'bg-green-500' },
+    { id: 'browser', name: 'Nebula Browser', desc: 'Fast and secure browsing', icon: Globe, color: 'bg-purple-500' },
+    { id: 'weather', name: 'Weather', desc: 'Real-time stellar forecasts', icon: Cloud, color: 'bg-sky-400' },
+    { id: 'music', name: 'Stellar Music', desc: 'The rhythm of the cosmos', icon: MusicIcon, color: 'bg-pink-600' },
+  ];
+
+  return (
+    <div className="h-full bg-black text-white p-6 overflow-y-auto">
+      <h1 className="text-4xl font-bold mb-8 font-display">Nebula Store</h1>
+      <div className="space-y-8">
+        <section>
+          <h2 className="text-xl font-semibold mb-4 text-zinc-400">Featured Apps</h2>
+          <div className="grid grid-cols-1 gap-4">
+            {storeApps.map(app => {
+              const isInstalled = installedAppIds.includes(app.id);
+              return (
+                <div key={app.id} className="glass p-4 rounded-2xl flex items-center gap-4">
+                  <div className={`${app.color} w-12 h-12 rounded-xl flex items-center justify-center`}>
+                    <app.icon size={24} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold">{app.name}</h3>
+                    <p className="text-xs text-zinc-400">{app.desc}</p>
+                  </div>
+                  <button 
+                    onClick={() => onInstall(app.id as AppId)}
+                    className={`text-xs font-bold px-4 py-2 rounded-full transition-colors ${
+                      isInstalled 
+                        ? 'bg-zinc-800 text-zinc-400' 
+                        : 'bg-white text-black hover:bg-zinc-200'
+                    }`}
+                  >
+                    {isInstalled ? 'OPEN' : 'GET'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+};
+
+const ACCENT_COLORS = [
+  { id: 'purple', name: 'Purple', class: 'bg-purple-600', text: 'text-purple-500', hex: '#9333ea' },
+  { id: 'blue', name: 'Blue', class: 'bg-blue-600', text: 'text-blue-500', hex: '#2563eb' },
+  { id: 'pink', name: 'Pink', class: 'bg-pink-600', text: 'text-pink-500', hex: '#db2777' },
+  { id: 'cyan', name: 'Cyan', class: 'bg-cyan-500', text: 'text-cyan-400', hex: '#06b6d4' },
+  { id: 'green', name: 'Green', class: 'bg-green-600', text: 'text-green-500', hex: '#16a34a' },
+  { id: 'orange', name: 'Orange', class: 'bg-orange-600', text: 'text-orange-500', hex: '#ea580c' },
+];
+
+const SettingsApp = ({ 
+  theme, 
+  setTheme, 
+  accent,
+  setAccent,
+  profile, 
+  setProfile, 
+  onOpenProfile 
+}: { 
   theme: Theme, 
   setTheme: (t: Theme) => void,
+  accent: string,
+  setAccent: (a: string) => void,
   profile: UserProfile,
   setProfile: (p: UserProfile) => void,
   onOpenProfile: () => void
@@ -259,22 +345,40 @@ const SettingsApp = ({ theme, setTheme, profile, setProfile, onOpenProfile }: {
       </section>
 
       <section className="glass rounded-2xl p-4 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Palette className="text-purple-400" size={20} />
-            <span>Appearance</span>
-          </div>
+        <div className="flex items-center gap-3">
+          <Palette className="text-zinc-400" size={20} />
+          <span className="font-bold">Appearance</span>
         </div>
-        <div className="grid grid-cols-3 gap-2 pt-2">
-          {THEMES.map(t => (
-            <button 
-              key={t.id}
-              onClick={() => setTheme(t)}
-              className={`p-3 rounded-xl border-2 transition-all ${theme.id === t.id ? 'border-purple-500 bg-purple-500/10' : 'border-transparent bg-white/5'}`}
-            >
-              <div className="text-[10px] font-bold">{t.name}</div>
-            </button>
-          ))}
+        
+        <div className="space-y-4">
+          <div>
+            <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2 block">Theme</label>
+            <div className="grid grid-cols-3 gap-2">
+              {THEMES.map(t => (
+                <button 
+                  key={t.id}
+                  onClick={() => setTheme(t)}
+                  className={`p-3 rounded-xl border-2 transition-all ${theme.id === t.id ? 'border-white/20 bg-white/10' : 'border-transparent bg-white/5'}`}
+                >
+                  <div className="text-[10px] font-bold">{t.name}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2 block">Accent Color</label>
+            <div className="grid grid-cols-6 gap-2">
+              {ACCENT_COLORS.map(c => (
+                <button 
+                  key={c.id}
+                  onClick={() => setAccent(c.hex)}
+                  className={`w-8 h-8 rounded-full border-2 transition-all ${accent === c.hex ? 'border-white scale-110' : 'border-transparent'}`}
+                  style={{ backgroundColor: c.hex }}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -341,11 +445,13 @@ const CameraApp = () => {
 export default function App() {
   const [activeApp, setActiveApp] = useState<AppId>('home');
   const [theme, setTheme] = useState<Theme>(THEMES[0]);
+  const [accentColor, setAccentColor] = useState('#9333ea'); // Default purple
   const [time, setTime] = useState(new Date());
   const [isControlCenterOpen, setIsControlCenterOpen] = useState(false);
   const [isAppDrawerOpen, setIsAppDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
+  const [installedAppIds, setInstalledAppIds] = useState<string[]>(['browser', 'weather', 'music', 'appstore', 'camera', 'settings']);
 
   // Quick Settings States
   const [wifiEnabled, setWifiEnabled] = useState(true);
@@ -362,11 +468,21 @@ export default function App() {
     { id: 'browser', name: 'Browser', icon: Globe, color: 'bg-blue-500', component: BrowserApp },
     { id: 'weather', name: 'Weather', icon: Cloud, color: 'bg-sky-400', component: WeatherApp },
     { id: 'music', name: 'Music', icon: MusicIcon, color: 'bg-purple-600', component: MusicApp },
-    { id: 'appstore', name: 'Store', icon: ShoppingBag, color: 'bg-zinc-800', component: AppStoreApp },
+    { id: 'appstore', name: 'Store', icon: ShoppingBag, color: 'bg-zinc-800', component: () => <AppStoreApp installedAppIds={installedAppIds} onInstall={toggleInstall} /> },
     { id: 'camera', name: 'Camera', icon: CameraIcon, color: 'bg-zinc-700', component: CameraApp },
-    { id: 'settings', name: 'Settings', icon: SettingsIcon, color: 'bg-zinc-600', component: () => <SettingsApp theme={theme} setTheme={setTheme} profile={profile} setProfile={setProfile} onOpenProfile={() => setActiveApp('profile')} /> },
+    { id: 'settings', name: 'Settings', icon: SettingsIcon, color: 'bg-zinc-600', component: () => <SettingsApp theme={theme} setTheme={setTheme} accent={accentColor} setAccent={setAccentColor} profile={profile} setProfile={setProfile} onOpenProfile={() => setActiveApp('profile')} /> },
     { id: 'profile', name: 'Profile', icon: User, color: 'bg-indigo-500', component: () => <ProfileApp profile={profile} setProfile={setProfile} /> },
+    { id: 'messages', name: 'Messages', icon: MessageSquare, color: 'bg-blue-500', component: MessagesApp },
+    { id: 'calendar', name: 'Calendar', icon: CalendarIcon, color: 'bg-green-500', component: CalendarApp },
   ];
+
+  const toggleInstall = (id: AppId) => {
+    if (installedAppIds.includes(id)) {
+      setActiveApp(id);
+    } else {
+      setInstalledAppIds([...installedAppIds, id]);
+    }
+  };
 
   const handleHomeGesture = () => {
     setActiveApp('home');
@@ -376,8 +492,8 @@ export default function App() {
     <div className={`fixed inset-0 flex items-center justify-center ${theme.bg} transition-colors duration-700`}>
       {/* Background Nebula Effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-purple-600/10 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] blur-[120px] rounded-full animate-pulse" style={{ backgroundColor: `${accentColor}20` }} />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] blur-[120px] rounded-full animate-pulse" style={{ backgroundColor: `${accentColor}10`, animationDelay: '2s' }} />
       </div>
 
       {/* OS Container - Full Screen with Square Edges */}
@@ -420,9 +536,9 @@ export default function App() {
                   <span className="text-sm">Search apps...</span>
                 </div>
 
-                {/* App Grid - Only show main apps on home */}
+                {/* App Grid - Only show installed main apps on home */}
                 <div className="grid grid-cols-4 gap-6">
-                  {apps.filter(a => ['browser', 'weather', 'music', 'appstore'].includes(a.id)).map(app => (
+                  {apps.filter(a => ['browser', 'weather', 'music', 'appstore'].includes(a.id) && installedAppIds.includes(a.id)).map(app => (
                     <motion.button
                       key={app.id}
                       whileHover={{ scale: 1.1 }}
@@ -452,7 +568,7 @@ export default function App() {
 
                 {/* Dock */}
                 <div className="glass rounded-[32px] p-4 flex justify-around items-center">
-                  {apps.slice(0, 4).map(app => (
+                  {apps.filter(a => installedAppIds.includes(a.id)).slice(0, 4).map(app => (
                     <button 
                       key={`dock-${app.id}`} 
                       onClick={() => setActiveApp(app.id)}
@@ -512,7 +628,10 @@ export default function App() {
                 </div>
 
                 <div className="grid grid-cols-4 gap-y-8 gap-x-4 overflow-y-auto pb-20">
-                  {apps.filter(app => app.name.toLowerCase().includes(searchQuery.toLowerCase())).map(app => (
+                  {apps.filter(app => 
+                    app.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+                    installedAppIds.includes(app.id)
+                  ).map(app => (
                     <motion.button
                       key={`drawer-${app.id}`}
                       whileHover={{ scale: 1.1 }}
@@ -562,13 +681,15 @@ export default function App() {
                   <div className="glass rounded-3xl p-4 grid grid-cols-2 gap-4">
                     <button 
                       onClick={() => setWifiEnabled(!wifiEnabled)}
-                      className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${wifiEnabled ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/30'}`}
+                      className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${wifiEnabled ? 'text-white' : 'bg-white/10 text-white/30'}`}
+                      style={{ backgroundColor: wifiEnabled ? accentColor : undefined }}
                     >
                       <Wifi size={20} />
                     </button>
                     <button 
                       onClick={() => setBluetoothEnabled(!bluetoothEnabled)}
-                      className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${bluetoothEnabled ? 'bg-blue-600 text-white' : 'bg-white/10 text-white/30'}`}
+                      className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${bluetoothEnabled ? 'text-white' : 'bg-white/10 text-white/30'}`}
+                      style={{ backgroundColor: bluetoothEnabled ? accentColor : undefined }}
                     >
                       <Bluetooth size={20} />
                     </button>
@@ -598,7 +719,8 @@ export default function App() {
                         max="100" 
                         value={brightness}
                         onChange={(e) => setBrightness(parseInt(e.target.value))}
-                        className="w-full accent-purple-500"
+                        className="w-full"
+                        style={{ accentColor: accentColor }}
                       />
                     </div>
                     <div className="flex-1 flex flex-col gap-2">
@@ -611,7 +733,8 @@ export default function App() {
                         min="0" 
                         max="100" 
                         defaultValue="60"
-                        className="w-full accent-blue-500"
+                        className="w-full"
+                        style={{ accentColor: accentColor }}
                       />
                     </div>
                   </div>
