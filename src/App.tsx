@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
 import { AppId, AppConfig, Theme, THEMES, UserProfile, DEFAULT_PROFILE } from './types';
 import { 
@@ -49,6 +49,9 @@ import {
   CheckCircle2,
   AlertTriangle,
   Monitor,
+  RefreshCw,
+  Heart,
+  ShieldAlert,
   Type,
   Calculator,
   FileText,
@@ -755,358 +758,354 @@ const SettingsApp = ({
     }, 50);
   };
 
-  if (activeSection === 'wallpaper') {
-    return (
-      <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
-          <h1 className="text-2xl font-bold font-display">Wallpaper</h1>
-        </div>
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          {PREMADE_WALLPAPERS.map((wp, i) => (
-            <button 
-              key={i} 
-              onClick={() => setWallpaper(wp)}
-              className={`aspect-[9/16] rounded-2xl overflow-hidden border-2 transition-all ${wallpaper === wp ? 'scale-95' : 'border-transparent'}`}
-              style={{ borderColor: wallpaper === wp ? accent : 'transparent' }}
-            >
-              <img src={wp} alt={`Wallpaper ${i}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-            </button>
-          ))}
-        </div>
-        <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*" />
-        <button 
-          onClick={() => fileInputRef.current?.click()}
-          className="w-full glass p-4 rounded-2xl flex items-center justify-center gap-3 font-bold"
-        >
-          <ImageIcon size={20} />
-          Upload Custom Wallpaper
-        </button>
-      </div>
-    );
-  }
-
-  if (activeSection === 'about') {
-    return (
-      <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
-          <h1 className="text-2xl font-bold font-display">About Phone</h1>
-        </div>
-        <div className="space-y-4">
-          <div className="glass p-6 rounded-3xl flex flex-col items-center text-center">
-            <div 
-              className="w-20 h-20 rounded-3xl flex items-center justify-center mb-4 shadow-xl transition-colors"
-              style={{ backgroundColor: accent }}
-            >
-              <Smartphone size={40} />
-            </div>
-            <input 
-              type="text" 
-              value={deviceName}
-              onChange={(e) => setDeviceName(e.target.value)}
-              className="text-xl font-bold bg-transparent border-none outline-none text-center w-full focus:opacity-80"
-              style={{ color: accent }}
-            />
-            <p className="text-zinc-500 text-sm">Model: NP-2026-X</p>
-          </div>
-          
-          <div className="glass p-4 rounded-2xl">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-bold">Software Update</span>
-              {isUpdating ? (
-                <span className="text-xs font-bold" style={{ color: accent }}>{updateProgress}%</span>
-              ) : (
-                <button onClick={startUpdate} className="text-xs font-bold" style={{ color: accent }}>CHECK</button>
-              )}
-            </div>
-            {isUpdating && (
-              <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full transition-all duration-300" style={{ width: `${updateProgress}%`, backgroundColor: accent }} />
-              </div>
-            )}
-            {!isUpdating && updateProgress === 100 && (
-              <p className="text-[10px] text-green-500 font-bold">System is up to date</p>
-            )}
-          </div>
-
-          <div className="glass rounded-2xl overflow-hidden">
-            {[
-              { label: 'OS Version', value: 'Nebulabs OS 1.1.0' },
-              { label: 'Processor', value: 'Stellar X1' },
-              { label: 'RAM', value: '12GB' },
-              { label: 'Storage', value: '256GB' },
-              { label: 'Serial Number', value: 'SN-9928-X-001' }
-            ].map(item => (
-              <div key={item.label} className="p-4 border-b border-white/5 flex justify-between items-center">
-                <span className="text-zinc-400 text-sm">{item.label}</span>
-                <span className="font-medium">{item.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (activeSection === 'safety') {
-    return (
-      <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
-          <h1 className="text-2xl font-bold font-display">Safety & Emergency</h1>
-        </div>
-        <div className="space-y-6">
-          <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl flex items-start gap-4">
-            <AlertTriangle className="text-red-500 shrink-0" size={24} />
-            <div>
-              <h3 className="font-bold text-red-500">Emergency SOS</h3>
-              <p className="text-xs text-zinc-400">Press the power button 5 times to call emergency services.</p>
-            </div>
-          </div>
-          <div className="glass rounded-2xl p-4 space-y-4">
-            <button 
-              onClick={() => setActiveSection('medical')}
-              className="w-full flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <User className="text-blue-400" size={20} />
-                <span>Medical ID</span>
-              </div>
-              <ChevronLeft size={16} className="rotate-180 opacity-30" />
-            </button>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Bell className="text-orange-400" size={20} />
-                <span>Earthquake Alerts</span>
-              </div>
-              <div className="w-10 h-5 bg-purple-600 rounded-full relative">
-                <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (activeSection === 'medical') {
-    return (
-      <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <button onClick={() => setActiveSection('safety')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
-          <h1 className="text-2xl font-bold font-display">Medical ID</h1>
-        </div>
-        <div className="space-y-4">
-          <div className="glass p-6 rounded-3xl flex flex-col items-center text-center">
-            <img src={profile.avatar} alt="Avatar" className="w-20 h-20 rounded-full mb-4 border-2 border-red-500" referrerPolicy="no-referrer" />
-            <h2 className="text-xl font-bold">{profile.username}</h2>
-          </div>
-          <div className="glass rounded-2xl overflow-hidden">
-            {[
-              { label: 'Blood Type', value: 'O+' },
-              { label: 'Allergies', value: 'None' },
-              { label: 'Medications', value: 'None' },
-              { label: 'Emergency Contact', value: 'Nova (+1 555-0123)' }
-            ].map(item => (
-              <div key={item.label} className="p-4 border-b border-white/5">
-                <div className="text-zinc-500 text-[10px] uppercase font-bold mb-1">{item.label}</div>
-                <div className="font-medium">{item.value}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (activeSection === 'accessibility') {
-    return (
-      <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
-          <h1 className="text-2xl font-bold font-display">Accessibility</h1>
-        </div>
-        <div className="space-y-4">
-          <div className="glass rounded-2xl p-4 space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Type className="text-zinc-400" size={20} />
-                <div className="flex flex-col">
-                  <span className="font-bold">Font Size</span>
-                  <span className="text-[10px] text-zinc-500">Adjust text size for better readability</span>
-                </div>
-              </div>
-              <span className="text-purple-400 font-bold">Medium</span>
-            </div>
-            <button 
-              onClick={() => setReduceMotion(!reduceMotion)}
-              className="w-full flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <Zap className="text-zinc-400" size={20} />
-                <div className="flex flex-col text-left">
-                  <span className="font-bold">Reduce Motion</span>
-                  <span className="text-[10px] text-zinc-500">Minimize animations and transitions</span>
-                </div>
-              </div>
-              <div 
-                className={`w-10 h-5 rounded-full relative transition-colors ${reduceMotion ? '' : 'bg-zinc-800'}`}
-                style={{ backgroundColor: reduceMotion ? accent : undefined }}
-              >
-                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${reduceMotion ? 'right-1' : 'left-1'}`} />
-              </div>
-            </button>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Monitor className="text-zinc-400" size={20} />
-                <div className="flex flex-col">
-                  <span className="font-bold">High Contrast</span>
-                  <span className="text-[10px] text-zinc-500">Increase contrast for UI elements</span>
-                </div>
-              </div>
-              <div className="w-10 h-5 bg-zinc-800 rounded-full relative">
-                <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (activeSection === 'navigation') {
-    return (
-      <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
-          <h1 className="text-2xl font-bold font-display">Navigation</h1>
-        </div>
-        <div className="space-y-4">
-          <div className="glass rounded-2xl p-4 space-y-4">
-            <button 
-              onClick={() => setNavigationMode('gestures')}
-              className={`w-full p-4 rounded-xl border-2 flex items-center justify-between transition-all ${navigationMode === 'gestures' ? 'bg-white/10' : 'border-transparent bg-white/5'}`}
-              style={{ borderColor: navigationMode === 'gestures' ? accent : 'transparent' }}
-            >
-              <div className="flex flex-col text-left">
-                <span className="font-bold">Gesture Navigation</span>
-                <span className="text-[10px] text-zinc-500">Swipe up for home, swipe down for settings</span>
-              </div>
-              {navigationMode === 'gestures' && <CheckCircle2 size={20} style={{ color: accent }} />}
-            </button>
-            <button 
-              onClick={() => setNavigationMode('buttons')}
-              className={`w-full p-4 rounded-xl border-2 flex items-center justify-between transition-all ${navigationMode === 'buttons' ? 'bg-white/10' : 'border-transparent bg-white/5'}`}
-              style={{ borderColor: navigationMode === 'buttons' ? accent : 'transparent' }}
-            >
-              <div className="flex flex-col text-left">
-                <span className="font-bold">3-Button Navigation</span>
-                <span className="text-[10px] text-zinc-500">Back, Home, and Recents buttons</span>
-              </div>
-              {navigationMode === 'buttons' && <CheckCircle2 size={20} style={{ color: accent }} />}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
-      <h1 className="text-3xl font-bold mb-8 font-display">Settings</h1>
-      
-      <div className="space-y-6">
-        <section 
-          className="glass rounded-2xl overflow-hidden cursor-pointer active:scale-95 transition-transform"
-          onClick={onOpenProfile}
-        >
-          <div className="p-4 border-b border-white/5 flex items-center gap-4">
-            <img 
-              src={profile.avatar} 
-              alt="Avatar" 
-              className="w-12 h-12 rounded-full object-cover"
-              referrerPolicy="no-referrer"
-            />
-            <div className="flex-1">
-              <h3 className="font-bold">{profile.username}</h3>
-              <p className="text-xs text-zinc-400">View Profile</p>
-            </div>
-            <ChevronLeft size={16} className="rotate-180 opacity-30" />
-          </div>
-        </section>
+    <div className="h-full bg-zinc-950 text-white overflow-hidden flex flex-col">
+      <div className="flex-1 overflow-y-auto p-6">
+        <AnimatePresence mode="wait">
+          {activeSection === 'main' && (
+            <motion.div
+              key="main"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              <h1 className="text-3xl font-bold mb-8 font-display">Settings</h1>
+              
+              <section 
+                className="glass rounded-2xl overflow-hidden cursor-pointer active:scale-95 transition-transform"
+                onClick={onOpenProfile}
+              >
+                <div className="p-4 border-b border-white/5 flex items-center gap-4">
+                  <img 
+                    src={profile.avatar} 
+                    alt="Avatar" 
+                    className="w-12 h-12 rounded-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="flex-1">
+                    <h3 className="font-bold">{profile.username}</h3>
+                    <p className="text-xs text-zinc-400">View Profile</p>
+                  </div>
+                  <ChevronLeft size={16} className="rotate-180 opacity-30" />
+                </div>
+              </section>
 
-        <section className="glass rounded-2xl p-4 space-y-4">
-          <div className="flex items-center gap-3">
-            <Palette className="text-zinc-400" size={20} />
-            <span className="font-bold">Appearance</span>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2 block">Theme</label>
-              <div className="grid grid-cols-3 gap-2">
-                {THEMES.map(t => (
+              <section className="glass rounded-2xl p-4 space-y-4">
+                <div className="flex items-center gap-3">
+                  <Palette className="text-zinc-400" size={20} />
+                  <span className="font-bold">Appearance</span>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2 block">Theme</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {THEMES.map(t => (
+                        <button 
+                          key={t.id}
+                          onClick={() => setTheme(t)}
+                          className={`p-3 rounded-xl border-2 transition-all ${theme.id === t.id ? 'border-white/20 bg-white/10' : 'border-transparent bg-white/5'}`}
+                        >
+                          <div className="text-[10px] font-bold">{t.name}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2 block">Accent Color</label>
+                    <div className="grid grid-cols-6 gap-2">
+                      {ACCENT_COLORS.map(c => (
+                        <button 
+                          key={c.id}
+                          onClick={() => setAccent(c.hex)}
+                          className={`w-8 h-8 rounded-full border-2 transition-all ${accent === c.hex ? 'border-white scale-110' : 'border-transparent'}`}
+                          style={{ backgroundColor: c.hex }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
                   <button 
-                    key={t.id}
-                    onClick={() => setTheme(t)}
-                    className={`p-3 rounded-xl border-2 transition-all ${theme.id === t.id ? 'border-white/20 bg-white/10' : 'border-transparent bg-white/5'}`}
+                    onClick={() => setActiveSection('wallpaper')}
+                    className="w-full flex items-center justify-between py-2 border-t border-white/5 mt-2"
                   >
-                    <div className="text-[10px] font-bold">{t.name}</div>
+                    <div className="flex items-center gap-3">
+                      <ImageIcon className="text-zinc-400" size={18} />
+                      <span>Wallpaper</span>
+                    </div>
+                    <ChevronLeft size={16} className="rotate-180 opacity-30" />
+                  </button>
+                </div>
+              </section>
+
+              <section className="glass rounded-2xl p-4 space-y-4">
+                {[
+                  { icon: Bell, label: 'Notifications', color: 'text-red-400', section: null },
+                  { icon: Lock, label: 'Privacy & Security', color: 'text-green-400', section: null },
+                  { icon: Shield, label: 'Safety & Emergency', color: 'text-red-500', section: 'safety' },
+                  { icon: Accessibility, label: 'Accessibility', color: 'text-purple-400', section: 'accessibility' },
+                  { icon: Smartphone, label: 'Navigation', color: 'text-zinc-400', section: 'navigation' },
+                  { icon: Info, label: 'About Phone', color: 'text-blue-400', section: 'about' }
+                ].map(item => (
+                  <button 
+                    key={item.label} 
+                    onClick={() => item.section && setActiveSection(item.section as any)}
+                    className="w-full flex items-center justify-between py-1"
+                  >
+                    <div className="flex items-center gap-3">
+                      <item.icon className={item.color} size={20} />
+                      <span>{item.label}</span>
+                    </div>
+                    <ChevronLeft size={16} className="rotate-180 opacity-30" />
+                  </button>
+                ))}
+              </section>
+            </motion.div>
+          )}
+
+          {activeSection === 'wallpaper' && (
+            <motion.div
+              key="wallpaper"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
+                <h1 className="text-2xl font-bold font-display">Wallpaper</h1>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="aspect-[9/16] glass rounded-2xl flex flex-col items-center justify-center gap-2 border-2 border-dashed border-white/10 hover:border-white/20 transition-all"
+                >
+                  <Plus size={32} className="text-zinc-500" />
+                  <span className="text-xs font-bold text-zinc-500">Upload Custom</span>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileUpload} 
+                    className="hidden" 
+                    accept="image/*" 
+                  />
+                </button>
+                {PREMADE_WALLPAPERS.map((w, i) => (
+                  <button 
+                    key={i} 
+                    onClick={() => setWallpaper(w)}
+                    className={`aspect-[9/16] rounded-2xl overflow-hidden border-2 transition-all ${wallpaper === w ? 'scale-95' : 'border-transparent'}`}
+                    style={{ borderColor: wallpaper === w ? accent : 'transparent' }}
+                  >
+                    <img src={w} alt={`Wallpaper ${i}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   </button>
                 ))}
               </div>
-            </div>
+            </motion.div>
+          )}
 
-            <div>
-              <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2 block">Accent Color</label>
-              <div className="grid grid-cols-6 gap-2">
-                {ACCENT_COLORS.map(c => (
-                  <button 
-                    key={c.id}
-                    onClick={() => setAccent(c.hex)}
-                    className={`w-8 h-8 rounded-full border-2 transition-all ${accent === c.hex ? 'border-white scale-110' : 'border-transparent'}`}
-                    style={{ backgroundColor: c.hex }}
+          {activeSection === 'navigation' && (
+            <motion.div
+              key="navigation"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
+                <h1 className="text-2xl font-bold font-display">Navigation</h1>
+              </div>
+              <div className="glass rounded-2xl p-4 space-y-4">
+                <button 
+                  onClick={() => setNavigationMode('gestures')}
+                  className={`w-full p-4 rounded-xl border-2 flex items-center justify-between transition-all ${navigationMode === 'gestures' ? 'bg-white/10' : 'border-transparent bg-white/5'}`}
+                  style={{ borderColor: navigationMode === 'gestures' ? accent : 'transparent' }}
+                >
+                  <div className="flex flex-col text-left">
+                    <span className="font-bold">Gesture Navigation</span>
+                    <span className="text-[10px] text-zinc-500">Swipe up for home, swipe down for settings</span>
+                  </div>
+                  {navigationMode === 'gestures' && <CheckCircle2 size={20} style={{ color: accent }} />}
+                </button>
+                <button 
+                  onClick={() => setNavigationMode('buttons')}
+                  className={`w-full p-4 rounded-xl border-2 flex items-center justify-between transition-all ${navigationMode === 'buttons' ? 'bg-white/10' : 'border-transparent bg-white/5'}`}
+                  style={{ borderColor: navigationMode === 'buttons' ? accent : 'transparent' }}
+                >
+                  <div className="flex flex-col text-left">
+                    <span className="font-bold">3-Button Navigation</span>
+                    <span className="text-[10px] text-zinc-500">Back, Home, and Recents buttons</span>
+                  </div>
+                  {navigationMode === 'buttons' && <CheckCircle2 size={20} style={{ color: accent }} />}
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {activeSection === 'about' && (
+            <motion.div
+              key="about"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
+                <h1 className="text-2xl font-bold font-display">About Phone</h1>
+              </div>
+              
+              <div className="glass rounded-2xl p-6 flex flex-col items-center text-center space-y-4">
+                <div className="w-24 h-24 rounded-3xl bg-white/5 flex items-center justify-center mb-2">
+                  <Smartphone size={48} className="text-zinc-400" />
+                </div>
+                <div className="w-full">
+                  <input 
+                    type="text" 
+                    value={deviceName} 
+                    onChange={(e) => setDeviceName(e.target.value)}
+                    className="bg-transparent border-none text-center text-xl font-bold w-full outline-none focus:ring-2 rounded-lg transition-all"
+                    style={{ color: accent }}
                   />
-                ))}
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Device Name</p>
+                </div>
               </div>
-            </div>
 
-            <button 
-              onClick={() => setActiveSection('wallpaper')}
-              className="w-full flex items-center justify-between py-2 border-t border-white/5 mt-2"
-            >
-              <div className="flex items-center gap-3">
-                <ImageIcon className="text-zinc-400" size={18} />
-                <span>Wallpaper</span>
+              <div className="glass rounded-2xl p-4 space-y-4">
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-zinc-400">Model</span>
+                  <span className="font-medium">Nebula X-1</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-zinc-400">Software Version</span>
+                  <span className="font-medium">NebulaOS 2.0.4</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-zinc-400">Serial Number</span>
+                  <span className="font-mono text-[10px]">NB-992-X-2026</span>
+                </div>
               </div>
-              <ChevronLeft size={16} className="rotate-180 opacity-30" />
-            </button>
-          </div>
-        </section>
 
-        <section className="glass rounded-2xl p-4 space-y-4">
-          {[
-            { icon: Bell, label: 'Notifications', color: 'text-red-400', section: null },
-            { icon: Lock, label: 'Privacy & Security', color: 'text-green-400', section: null },
-            { icon: Shield, label: 'Safety & Emergency', color: 'text-red-500', section: 'safety' },
-            { icon: Accessibility, label: 'Accessibility', color: 'text-purple-400', section: 'accessibility' },
-            { icon: Smartphone, label: 'Navigation', color: 'text-zinc-400', section: 'navigation' },
-            { icon: Info, label: 'About Phone', color: 'text-blue-400', section: 'about' }
-          ].map(item => (
-            <button 
-              key={item.label} 
-              onClick={() => item.section && setActiveSection(item.section as any)}
-              className="w-full flex items-center justify-between py-1"
-            >
-              <div className="flex items-center gap-3">
-                <item.icon className={item.color} size={20} />
-                <span>{item.label}</span>
+              <div className="glass rounded-2xl p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <RefreshCw className="text-zinc-400" size={20} />
+                    <span className="font-bold">Software Update</span>
+                  </div>
+                  {!isUpdating && (
+                    <button 
+                      onClick={startUpdate}
+                      className="px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest"
+                      style={{ backgroundColor: accent }}
+                    >
+                      Check
+                    </button>
+                  )}
+                </div>
+                {isUpdating && (
+                  <div className="space-y-2">
+                    <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                      <motion.div 
+                        className="h-full"
+                        style={{ backgroundColor: accent }}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${updateProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-zinc-500 text-center">Downloading NebulaOS 2.1.0... {updateProgress}%</p>
+                  </div>
+                )}
               </div>
-              <ChevronLeft size={16} className="rotate-180 opacity-30" />
-            </button>
-          ))}
-        </section>
+            </motion.div>
+          )}
+
+          {activeSection === 'safety' && (
+            <motion.div
+              key="safety"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
+                <h1 className="text-2xl font-bold font-display">Safety</h1>
+              </div>
+              <div className="glass rounded-2xl p-4 space-y-4">
+                <button 
+                  onClick={() => setActiveSection('medical')}
+                  className="w-full flex items-center justify-between py-2"
+                >
+                  <div className="flex items-center gap-3">
+                    <Heart className="text-red-400" size={20} />
+                    <span className="font-bold">Medical ID</span>
+                  </div>
+                  <ChevronLeft size={16} className="rotate-180 opacity-30" />
+                </button>
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex items-center gap-3">
+                    <ShieldAlert className="text-orange-400" size={20} />
+                    <span className="font-bold">Emergency SOS</span>
+                  </div>
+                  <div className="w-10 h-5 bg-zinc-800 rounded-full relative">
+                    <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeSection === 'accessibility' && (
+            <motion.div
+              key="accessibility"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
+                <h1 className="text-2xl font-bold font-display">Accessibility</h1>
+              </div>
+              <div className="glass rounded-2xl p-4 space-y-6">
+                <button 
+                  onClick={() => setReduceMotion(!reduceMotion)}
+                  className="w-full flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <Zap className="text-zinc-400" size={20} />
+                    <div className="flex flex-col text-left">
+                      <span className="font-bold">Reduce Motion</span>
+                      <span className="text-[10px] text-zinc-500">Simplify animations across OS</span>
+                    </div>
+                  </div>
+                  <div 
+                    className={`w-10 h-5 rounded-full relative transition-colors ${reduceMotion ? '' : 'bg-zinc-800'}`}
+                    style={{ backgroundColor: reduceMotion ? accent : undefined }}
+                  >
+                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${reduceMotion ? 'right-1' : 'left-1'}`} />
+                  </div>
+                </button>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Monitor className="text-zinc-400" size={20} />
+                    <div className="flex flex-col">
+                      <span className="font-bold">High Contrast</span>
+                      <span className="text-[10px] text-zinc-500">Increase contrast for UI elements</span>
+                    </div>
+                  </div>
+                  <div className="w-10 h-5 bg-zinc-800 rounded-full relative">
+                    <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full" />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -1211,7 +1210,7 @@ export default function App() {
     localStorage.setItem('nebula_nav_mode', navigationMode);
   }, [theme, accentColor, profile, installedAppIds, wallpaper, reduceMotion, deviceName, navigationMode]);
 
-  const apps: AppConfig[] = [
+  const apps: AppConfig[] = useMemo(() => [
     { id: 'browser', name: 'Browser', icon: Globe, color: 'bg-blue-500', component: BrowserApp },
     { id: 'weather', name: 'Weather', icon: Cloud, color: 'bg-sky-400', component: WeatherApp },
     { id: 'music', name: 'Music', icon: MusicIcon, color: 'bg-purple-600', component: MusicApp },
@@ -1227,7 +1226,7 @@ export default function App() {
     { id: 'minesweeper', name: 'Sweeper', icon: Grid3X3, color: 'bg-zinc-700', component: MinesweeperApp },
     { id: 'calculator', name: 'Calculator', icon: Calculator, color: 'bg-orange-600', component: CalculatorApp },
     { id: 'notes', name: 'Notes', icon: FileText, color: 'bg-yellow-600', component: NotesApp },
-  ];
+  ], [theme, accentColor, profile, installedAppIds, wallpaper, reduceMotion, deviceName, navigationMode]);
 
   const getAppBg = (appId: AppId, defaultColor: string) => {
     const systemApps: AppId[] = ['settings', 'appstore', 'camera', 'profile', 'calculator', 'notes'];
@@ -1578,20 +1577,45 @@ export default function App() {
         </div>
 
         {/* Navigation Bar */}
-        <div className="h-12 flex items-center justify-center relative bg-black/20 backdrop-blur-md border-t border-white/5">
+        <div className="h-16 relative bg-black/20 backdrop-blur-md border-t border-white/5 overflow-hidden">
           {navigationMode === 'gestures' ? (
             <motion.div 
-              drag="y"
-              dragConstraints={{ top: 0, bottom: 0 }}
+              drag
+              dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+              dragElastic={0.2}
               onDragEnd={(_, info) => {
-                if (info.offset.y < -50) handleHomeGesture();
+                const { x, y } = info.offset;
+                // Home gesture: Swipe up
+                if (y < -60 && Math.abs(x) < 80) {
+                  handleHomeGesture();
+                } 
+                // Back gesture: Swipe right from left side
+                else if (x > 100 && Math.abs(y) < 80) {
+                  handleBack();
+                } 
+                // Recents gesture: Swipe left from right side
+                else if (x < -100 && Math.abs(y) < 80) {
+                  setIsRecentsOpen(true);
+                }
               }}
-              className="w-32 h-1.5 rounded-full cursor-pointer transition-colors"
-              style={{ backgroundColor: `${accentColor}50` }}
-              whileHover={{ backgroundColor: accentColor }}
-            />
+              className="w-full h-full flex items-center justify-center cursor-pointer group z-50"
+            >
+              <motion.div 
+                className="w-32 h-1.5 rounded-full transition-all duration-300"
+                style={{ backgroundColor: `${accentColor}50` }}
+                whileHover={{ 
+                  backgroundColor: accentColor,
+                  width: 180,
+                  height: 8
+                }}
+                whileTap={{
+                  scale: 0.9,
+                  backgroundColor: accentColor
+                }}
+              />
+            </motion.div>
           ) : (
-            <div className="flex items-center justify-around w-full px-8">
+            <div className="flex items-center justify-around w-full h-full px-8">
               <button onClick={handleBack} className="p-2 text-white/50 hover:text-white transition-colors">
                 <ChevronLeft size={24} />
               </button>
@@ -1603,12 +1627,6 @@ export default function App() {
               </button>
             </div>
           )}
-          
-          {/* Top Gesture Area for Control Center */}
-          <div 
-            className="absolute top-[-750px] left-0 right-0 h-12 z-[110] cursor-ns-resize"
-            onMouseEnter={() => setIsControlCenterOpen(true)}
-          />
         </div>
 
         {/* Recents Overlay */}
