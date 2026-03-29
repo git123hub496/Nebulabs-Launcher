@@ -378,8 +378,8 @@ export default function App() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
 
-      {/* Phone Frame */}
-      <div className="relative w-[380px] h-[780px] bg-black rounded-[50px] shadow-2xl border-[8px] border-zinc-800 overflow-hidden flex flex-col">
+      {/* OS Container - Full Screen with Square Edges */}
+      <div className="relative w-full h-full bg-black overflow-hidden flex flex-col">
         
         {/* Status Bar / Swipe Down Trigger */}
         <div 
@@ -394,12 +394,6 @@ export default function App() {
             <Signal size={14} />
             <Battery size={14} className="rotate-90" />
           </div>
-        </div>
-
-        {/* Dynamic Island / Notch */}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-32 h-8 bg-black rounded-full z-[60] flex items-center justify-center gap-4">
-          <div className="w-2 h-2 rounded-full bg-zinc-800" />
-          <div className="w-8 h-2 rounded-full bg-zinc-800" />
         </div>
 
         {/* Screen Content */}
