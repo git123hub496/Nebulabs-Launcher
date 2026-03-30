@@ -43,7 +43,7 @@ import {
   Mail,
   Shield,
   Accessibility,
-  Image as ImageIcon,
+  Image as ImageLucide,
   PenTool,
   Gamepad2,
   Grid3X3,
@@ -68,7 +68,8 @@ import {
   Sparkles,
   Terminal,
   Activity,
-  MapPin
+  MapPin,
+  Upload
 } from 'lucide-react';
 
 // --- Home Screen Components ---
@@ -1016,6 +1017,7 @@ const AppStoreApp = ({ installedAppIds, onInstall, accent }: {
     { id: 'calculator', name: 'Nebula Calc', desc: 'Stellar calculations', icon: Calculator, color: 'bg-orange-600' },
     { id: 'notes', name: 'Nebula Notes', desc: 'Keep your thoughts in orbit', icon: FileText, color: 'bg-yellow-600' },
     { id: 'maps', name: 'Nebula Maps', desc: 'Navigate the digital cosmos', icon: MapPin, color: 'bg-green-600' },
+    { id: 'photos', name: 'Nebula Photos', desc: 'Capture and store memories', icon: ImageLucide, color: 'bg-rose-500' },
   ];
 
   const thirdPartyApps = [
@@ -1406,7 +1408,7 @@ const SettingsApp = ({
                     className="w-full flex items-center justify-between py-2 border-t border-white/5 mt-2"
                   >
                     <div className="flex items-center gap-3">
-                      <ImageIcon className="text-zinc-400" size={18} />
+                      <ImageLucide className="text-zinc-400" size={18} />
                       <span>Wallpaper</span>
                     </div>
                     <ChevronLeft size={16} className="rotate-180 opacity-30" />
@@ -1814,8 +1816,72 @@ const SettingsApp = ({
   );
 };
 
-const CameraApp = () => {
+const PhotosApp = ({ photos, onUpload }: { photos: string[], onUpload: (file: File) => void }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onUpload(file);
+    }
+  };
+
+  return (
+    <div className="h-full bg-[var(--bg)] text-[var(--fg)] flex flex-col p-6">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-4xl font-bold font-display">Photos</h1>
+        <button 
+          onClick={handleUploadClick}
+          className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+        >
+          <Upload size={24} />
+        </button>
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          className="hidden" 
+          accept="image/*" 
+          onChange={handleFileChange}
+        />
+      </div>
+
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
+        {photos.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center opacity-30 gap-4">
+            <ImageLucide size={64} />
+            <p className="font-bold uppercase tracking-widest text-xs">No photos yet</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-2">
+            {photos.map((photo, index) => (
+              <motion.div 
+                key={index}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="aspect-square rounded-lg overflow-hidden glass"
+              >
+                <img 
+                  src={photo} 
+                  alt={`Nebula Photo ${index}`} 
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const CameraApp = ({ onCapture }: { onCapture: (dataUrl: string) => void }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     async function setupCamera() {
@@ -1829,7 +1895,34 @@ const CameraApp = () => {
       }
     }
     setupCamera();
+    return () => {
+      if (videoRef.current?.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
   }, []);
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/png');
+        onCapture(dataUrl);
+        
+        // Visual feedback
+        const flash = document.createElement('div');
+        flash.className = 'absolute inset-0 bg-white z-[100] animate-flash';
+        video.parentElement?.appendChild(flash);
+        setTimeout(() => flash.remove(), 500);
+      }
+    }
+  };
 
   return (
     <div className="h-full bg-black relative flex flex-col">
@@ -1840,11 +1933,15 @@ const CameraApp = () => {
           playsInline 
           className="w-full h-full object-cover"
         />
+        <canvas ref={canvasRef} className="hidden" />
         <div className="absolute inset-0 border-[20px] border-black/20 pointer-events-none" />
       </div>
       <div className="h-32 bg-black flex items-center justify-around px-8">
         <div className="w-10 h-10 rounded-full bg-zinc-800" />
-        <button className="w-16 h-16 rounded-full border-4 border-white flex items-center justify-center">
+        <button 
+          onClick={capturePhoto}
+          className="w-16 h-16 rounded-full border-4 border-white flex items-center justify-center active:scale-90 transition-transform"
+        >
           <div className="w-12 h-12 rounded-full bg-white" />
         </button>
         <div className="w-10 h-10 rounded-full bg-zinc-800" />
@@ -1886,8 +1983,36 @@ export default function App() {
   });
   const [installedAppIds, setInstalledAppIds] = useState<string[]>(() => {
     const saved = localStorage.getItem('nebula_installed_apps');
-    return saved ? JSON.parse(saved) : ['browser', 'weather', 'music', 'appstore', 'camera', 'settings'];
+    const defaultApps = [
+      'browser', 'weather', 'music', 'appstore', 'camera', 'settings', 
+      'messages', 'computer-hub', 'calendar', 'emails', 'paint', 'snake', 
+      'minesweeper', 'calculator', 'notes', 'maps', 'photos', 'quadrais-ai'
+    ];
+    return saved ? JSON.parse(saved) : defaultApps;
   });
+  const [photos, setPhotos] = useState<string[]>(() => {
+    const saved = localStorage.getItem('nebula_photos');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('nebula_photos', JSON.stringify(photos));
+  }, [photos]);
+
+  const handleCapture = (dataUrl: string) => {
+    setPhotos(prev => [dataUrl, ...prev]);
+  };
+
+  const handlePhotoUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      if (dataUrl) {
+        setPhotos(prev => [dataUrl, ...prev]);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
   const [wallpaper, setWallpaper] = useState(() => {
     return localStorage.getItem('nebula_wallpaper') || 'https://picsum.photos/seed/nebulabs-bg/1080/1920';
   });
@@ -1910,6 +2035,7 @@ export default function App() {
       { type: 'app', id: 'browser' },
       { type: 'app', id: 'weather' },
       { type: 'app', id: 'music' },
+      { type: 'app', id: 'photos' },
       { type: 'app', id: 'appstore' }
     ];
   });
@@ -1968,7 +2094,8 @@ export default function App() {
     { id: 'computer-hub', name: 'Computer Hub', icon: Cpu, color: 'bg-blue-600', component: ComputerHubApp },
     { id: 'music', name: 'Music', icon: MusicIcon, color: 'bg-purple-600', component: MusicApp },
     { id: 'appstore', name: 'Store', icon: ShoppingBag, color: 'bg-zinc-800', component: () => <AppStoreApp installedAppIds={installedAppIds} onInstall={toggleInstall} accent={accentColor} /> },
-    { id: 'camera', name: 'Camera', icon: CameraIcon, color: 'bg-zinc-700', component: CameraApp },
+    { id: 'camera', name: 'Camera', icon: CameraIcon, color: 'bg-zinc-700', component: () => <CameraApp onCapture={handleCapture} /> },
+    { id: 'photos', name: 'Photos', icon: ImageLucide, color: 'bg-rose-500', component: () => <PhotosApp photos={photos} onUpload={handlePhotoUpload} /> },
     { id: 'settings', name: 'Settings', icon: SettingsIcon, color: 'bg-zinc-600', component: () => <SettingsApp theme={theme} setTheme={setTheme} accent={accentColor} setAccent={setAccentColor} profile={profile} setProfile={setProfile} onOpenProfile={() => setActiveApp('profile')} wallpaper={wallpaper} setWallpaper={setWallpaper} reduceMotion={reduceMotion} setReduceMotion={setReduceMotion} deviceName={deviceName} setDeviceName={setDeviceName} navigationMode={navigationMode} setNavigationMode={setNavigationMode} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} installedAppIds={installedAppIds} apps={apps} onUninstall={handleUninstall} onPowerOff={handlePowerOff} onRestart={handleRestart} /> },
     { id: 'profile', name: 'Profile', icon: User, color: 'bg-indigo-500', component: () => <ProfileApp profile={profile} setProfile={setProfile} accent={accentColor} /> },
     { id: 'messages', name: 'Messages', icon: MessageSquare, color: 'bg-blue-500', component: MessagesApp },
@@ -1980,7 +2107,7 @@ export default function App() {
     { id: 'calculator', name: 'Calculator', icon: Calculator, color: 'bg-orange-600', component: CalculatorApp },
     { id: 'notes', name: 'Notes', icon: FileText, color: 'bg-yellow-600', component: NotesApp },
     { id: 'maps', name: 'Maps', icon: MapPin, color: 'bg-green-600', component: MapsApp },
-  ], [theme, accentColor, profile, installedAppIds, wallpaper, reduceMotion, deviceName, navigationMode]);
+  ], [theme, accentColor, profile, installedAppIds, wallpaper, reduceMotion, deviceName, navigationMode, photos]);
 
   const getAppBg = (appId: AppId, defaultColor: string) => {
     const systemApps: AppId[] = ['settings', 'appstore', 'camera', 'profile', 'calculator', 'notes'];
