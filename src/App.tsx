@@ -67,7 +67,8 @@ import {
   Cpu,
   Sparkles,
   Terminal,
-  Activity
+  Activity,
+  MapPin
 } from 'lucide-react';
 
 // --- Home Screen Components ---
@@ -75,18 +76,65 @@ import {
 const WidgetComponent = ({ widget, accent }: { widget: WidgetConfig, accent: string }) => {
   if (widget.type === 'clock') {
     return (
-      <div className="w-full h-full glass rounded-3xl flex flex-col items-center justify-center p-4" style={{ border: `1px solid ${accent}30` }}>
-        <Clock size={32} style={{ color: accent }} className="mb-2" />
-        <span className="text-2xl font-bold font-display">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+      <div className="w-full h-full glass rounded-3xl flex flex-col items-center justify-center p-4 relative overflow-hidden group" style={{ border: `1px solid ${accent}30` }}>
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <Clock size={32} style={{ color: accent }} className="mb-2 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" />
+        <span className="text-2xl font-bold font-display tracking-tighter">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        <span className="text-[8px] text-zinc-500 uppercase tracking-widest mt-1 font-bold">Stellar Time</span>
       </div>
     );
   }
   if (widget.type === 'weather') {
     return (
-      <div className="w-full h-full glass rounded-3xl flex flex-col items-center justify-center p-4" style={{ border: `1px solid ${accent}30` }}>
-        <Cloud size={32} className="text-sky-400 mb-2" />
-        <span className="text-xl font-bold">24°C</span>
-        <span className="text-[10px] text-zinc-400 uppercase font-bold">Stellar City</span>
+      <div className="w-full h-full glass rounded-3xl flex flex-col items-center justify-center p-4 relative overflow-hidden" style={{ border: `1px solid ${accent}30` }}>
+        <div className="absolute -top-4 -right-4 w-16 h-16 bg-sky-500/10 blur-2xl rounded-full" />
+        <Cloud size={32} className="text-sky-400 mb-2 drop-shadow-[0_0_8px_rgba(56,189,248,0.4)]" />
+        <div className="text-center">
+          <span className="text-2xl font-bold tracking-tighter">24°C</span>
+          <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-tight">Stellar City</p>
+        </div>
+      </div>
+    );
+  }
+  if (widget.type === 'music') {
+    return (
+      <div className="w-full h-full glass rounded-3xl flex flex-col items-center justify-center p-4 relative overflow-hidden" style={{ border: `1px solid ${accent}30` }}>
+        <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-purple-500/5" />
+        <MusicIcon size={32} className="text-pink-500 mb-2 drop-shadow-[0_0_8px_rgba(236,72,153,0.4)]" />
+        <div className="text-center relative z-10">
+          <p className="text-sm font-bold truncate w-full tracking-tight">Stellar Drift</p>
+          <p className="text-[10px] text-zinc-400 font-medium">Nebula Collective</p>
+        </div>
+        <div className="flex gap-2 mt-2 opacity-50">
+          <div className="w-1 h-1 rounded-full bg-white animate-pulse" />
+          <div className="w-1 h-1 rounded-full bg-white animate-pulse delay-75" />
+          <div className="w-1 h-1 rounded-full bg-white animate-pulse delay-150" />
+        </div>
+      </div>
+    );
+  }
+  if (widget.type === 'calendar') {
+    return (
+      <div className="w-full h-full glass rounded-3xl flex flex-col items-center justify-center p-4 relative overflow-hidden" style={{ border: `1px solid ${accent}30` }}>
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(34,197,94,0.05),transparent_70%)]" />
+        <CalendarIcon size={32} className="text-green-500 mb-2 drop-shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+        <div className="text-center relative z-10">
+          <p className="text-xs font-bold uppercase tracking-widest text-green-500/80">Monday</p>
+          <p className="text-2xl font-bold tracking-tighter">MAR 30</p>
+          <p className="text-[8px] text-zinc-500 uppercase font-bold mt-1">Nebula Event</p>
+        </div>
+      </div>
+    );
+  }
+  if (widget.type === 'ai') {
+    return (
+      <div className="w-full h-full glass rounded-3xl flex flex-col items-center justify-center p-4 relative overflow-hidden" style={{ border: `1px solid ${accent}30` }}>
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10" />
+        <Sparkles size={32} className="text-indigo-400 mb-2 drop-shadow-[0_0_8px_rgba(99,102,241,0.4)]" />
+        <div className="text-center relative z-10">
+          <p className="text-sm font-bold tracking-tight">Nebula AI</p>
+          <p className="text-[10px] text-zinc-400 font-medium">Ready to assist</p>
+        </div>
       </div>
     );
   }
@@ -320,84 +368,24 @@ const WeatherApp = () => {
   );
 };
 
-const NebulaAIApp = () => {
-  const [messages, setMessages] = useState<{ role: 'user' | 'model', text: string }[]>([
-    { role: 'model', text: 'Greetings, traveler. I am Nebula AI. How can I assist your journey across the stars today?' }
-  ]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  const handleSend = async () => {
-    if (!input.trim() || loading) return;
-    const userMsg = input;
-    setInput('');
-    setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
-    setLoading(true);
-
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [...messages.map(m => ({ role: m.role, parts: [{ text: m.text }] })), { role: 'user', parts: [{ text: userMsg }] }],
-        config: { systemInstruction: "You are Nebula AI, a helpful and futuristic assistant for the Nebula OS. Your tone is helpful, slightly poetic, and technologically advanced." }
-      });
-      setMessages(prev => [...prev, { role: 'model', text: response.text }]);
-    } catch (error) {
-      console.error("AI error:", error);
-      setMessages(prev => [...prev, { role: 'model', text: "I'm sorry, my neural links are currently experiencing stellar interference." }]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+const QuadraisAIApp = () => {
   return (
-    <div className="h-full bg-[var(--bg)] text-[var(--fg)] flex flex-col transition-colors duration-300">
-      <div className="p-6 border-b border-[var(--glass-border)] flex items-center gap-3">
-        <Sparkles className="text-purple-400" />
-        <h1 className="text-xl font-bold font-display">Nebula AI</h1>
+    <div className="h-full bg-black flex flex-col">
+      <div className="p-4 glass border-b border-white/10 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Sparkles className="text-purple-400" />
+          <h1 className="text-xl font-bold font-display">Quadrais AI</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Live System</span>
+        </div>
       </div>
-      <div ref={scrollRef} className="flex-1 p-4 space-y-4 overflow-y-auto">
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] p-4 rounded-2xl ${msg.role === 'user' ? 'bg-purple-600' : 'glass border border-white/10'}`}>
-              <p className="text-sm leading-relaxed">{msg.text}</p>
-            </div>
-          </div>
-        ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="glass border border-white/10 p-4 rounded-2xl">
-              <div className="flex gap-1">
-                <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" />
-                <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-                <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce [animation-delay:0.4s]" />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="p-4 border-t border-white/10 flex gap-2">
-        <input 
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSend()}
-          placeholder="Ask Nebula AI..."
-          className="flex-1 bg-[var(--fg)]/5 border border-[var(--fg)]/10 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-purple-500"
-        />
-        <button 
-          onClick={handleSend}
-          className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center hover:bg-purple-500 transition-colors"
-        >
-          <Send size={18} />
-        </button>
-      </div>
+      <iframe 
+        src="https://quadrais-ai.vercel.app/" 
+        className="flex-1 w-full border-none"
+        title="Quadrais AI"
+      />
     </div>
   );
 };
@@ -917,6 +905,98 @@ const MinesweeperApp = () => {
   );
 };
 
+const NotificationCenter = ({ 
+  isOpen, 
+  onClose, 
+  accent, 
+  time 
+}: { 
+  isOpen: boolean, 
+  onClose: () => void, 
+  accent: string,
+  time: Date
+}) => {
+  const notifications = [
+    { id: 1, app: 'Messages', title: 'Astra', body: 'The star charts are ready for review.', time: '2m ago', icon: MessageSquare, color: 'bg-blue-500' },
+    { id: 2, app: 'System', title: 'Update Available', body: 'NebulaOS 2.1.0 is ready to download.', time: '15m ago', icon: RefreshCw, color: 'bg-blue-600' },
+    { id: 3, app: 'Calendar', title: 'Nebula Meeting', body: 'Stellar Council meeting in 30 minutes.', time: '45m ago', icon: CalendarIcon, color: 'bg-green-500' },
+    { id: 4, app: 'Emails', title: 'Nova Corp', body: 'Your latest shipment of stardust has arrived.', time: '1h ago', icon: Mail, color: 'bg-indigo-600' },
+  ];
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ y: '-100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '-100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          className="absolute inset-0 z-[100] glass backdrop-blur-3xl flex flex-col"
+        >
+          <div className="p-8 pt-16 flex flex-col gap-6 h-full">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col">
+                <h2 className="text-3xl font-bold font-display text-white">Notifications</h2>
+                <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-1">
+                  {time.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}
+                </p>
+              </div>
+              <button onClick={onClose} className="p-2 bg-white/10 rounded-full text-white">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+              {notifications.map((n) => (
+                <motion.div 
+                  key={n.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="glass p-4 rounded-3xl border border-white/5 flex gap-4 hover:bg-white/5 transition-colors group"
+                >
+                  <div className={`${n.color} w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                    <n.icon size={24} className="text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{n.app}</span>
+                      <span className="text-[10px] text-zinc-600">{n.time}</span>
+                    </div>
+                    <h3 className="font-bold text-white">{n.title}</h3>
+                    <p className="text-sm text-zinc-400 leading-relaxed">{n.body}</p>
+                  </div>
+                </motion.div>
+              ))}
+              
+              {notifications.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-full opacity-30 gap-4">
+                  <Bell size={48} />
+                  <p className="font-bold uppercase tracking-widest text-xs">No new alerts</p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-auto py-6 flex justify-center">
+              <button 
+                onClick={onClose}
+                className="px-8 py-3 glass rounded-full text-xs font-bold uppercase tracking-[0.2em] hover:bg-white/10 transition-all"
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+          
+          {/* Swipe Up to Close Indicator */}
+          <div 
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/20 rounded-full cursor-pointer"
+            onClick={onClose}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 const AppStoreApp = ({ installedAppIds, onInstall, accent }: { 
   installedAppIds: string[], 
   onInstall: (id: AppId) => void,
@@ -924,7 +1004,6 @@ const AppStoreApp = ({ installedAppIds, onInstall, accent }: {
 }) => {
   const storeApps = [
     { id: 'messages', name: 'Quantum Chat', desc: 'Secure messaging for the stars', icon: MessageSquare, color: 'bg-blue-500' },
-    { id: 'nebula-ai', name: 'Nebula AI', desc: 'Your personal stellar assistant', icon: Sparkles, color: 'bg-purple-600' },
     { id: 'computer-hub', name: 'Computer Hub', desc: 'System core management', icon: Cpu, color: 'bg-blue-600' },
     { id: 'calendar', name: 'Star Map', desc: 'Navigate the galaxy', icon: CalendarIcon, color: 'bg-green-500' },
     { id: 'browser', name: 'Nebula Browser', desc: 'Fast and secure browsing', icon: Globe, color: 'bg-purple-500' },
@@ -936,71 +1015,167 @@ const AppStoreApp = ({ installedAppIds, onInstall, accent }: {
     { id: 'minesweeper', name: 'Star Sweeper', desc: 'Clear the minefield', icon: Grid3X3, color: 'bg-zinc-700' },
     { id: 'calculator', name: 'Nebula Calc', desc: 'Stellar calculations', icon: Calculator, color: 'bg-orange-600' },
     { id: 'notes', name: 'Nebula Notes', desc: 'Keep your thoughts in orbit', icon: FileText, color: 'bg-yellow-600' },
+    { id: 'maps', name: 'Nebula Maps', desc: 'Navigate the digital cosmos', icon: MapPin, color: 'bg-green-600' },
+  ];
+
+  const thirdPartyApps = [
+    { id: 'quadrais-ai', name: 'Quadrais AI', desc: 'Advanced neural intelligence', icon: Sparkles, color: 'bg-purple-600' },
   ];
 
   const widgets = [
     { id: 'clock', name: 'Stellar Clock', type: 'clock', icon: Clock, color: 'bg-zinc-800' },
     { id: 'weather', name: 'Nebula Weather', type: 'weather', icon: Cloud, color: 'bg-sky-500' },
+    { id: 'music', name: 'Music Player', type: 'music', icon: MusicIcon, color: 'bg-pink-600' },
+    { id: 'calendar', name: 'Calendar', type: 'calendar', icon: CalendarIcon, color: 'bg-green-600' },
+    { id: 'ai', name: 'Nebula AI', type: 'ai', icon: Sparkles, color: 'bg-indigo-600' },
   ];
 
+  const [addedWidgetId, setAddedWidgetId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'apps' | 'widgets' | 'third-party'>('apps');
+
   return (
-    <div className="h-full bg-[var(--bg)] text-[var(--fg)] p-6 overflow-y-auto transition-colors duration-300">
-      <h1 className="text-4xl font-bold mb-8 font-display">Nebula Store</h1>
-      <div className="space-y-12">
-        <section>
-          <h2 className="text-xl font-semibold mb-4 text-zinc-400">Featured Apps</h2>
-          <div className="grid grid-cols-1 gap-4">
-            {storeApps.map(app => {
-              const isInstalled = installedAppIds.includes(app.id);
-              return (
-                <div key={app.id} className="glass p-4 rounded-2xl flex items-center gap-4">
-                  <div className={`${app.color} w-12 h-12 rounded-xl flex items-center justify-center`}>
-                    <app.icon size={24} />
+    <div className="h-full bg-[var(--bg)] text-[var(--fg)] flex flex-col transition-colors duration-300">
+      <div className="p-6 pb-2">
+        <h1 className="text-4xl font-bold mb-6 font-display">Nebula Store</h1>
+        <div className="flex gap-4 border-b border-white/10 overflow-x-auto no-scrollbar">
+          <button 
+            onClick={() => setActiveTab('apps')}
+            className={`pb-2 text-sm font-bold transition-all relative whitespace-nowrap ${activeTab === 'apps' ? 'text-white' : 'text-zinc-500'}`}
+          >
+            APPS
+            {activeTab === 'apps' && <motion.div layoutId="store-tab" className="absolute bottom-0 left-0 w-full h-0.5 bg-white" />}
+          </button>
+          <button 
+            onClick={() => setActiveTab('third-party')}
+            className={`pb-2 text-sm font-bold transition-all relative whitespace-nowrap ${activeTab === 'third-party' ? 'text-white' : 'text-zinc-500'}`}
+          >
+            3RD PARTY
+            {activeTab === 'third-party' && <motion.div layoutId="store-tab" className="absolute bottom-0 left-0 w-full h-0.5 bg-white" />}
+          </button>
+          <button 
+            onClick={() => setActiveTab('widgets')}
+            className={`pb-2 text-sm font-bold transition-all relative whitespace-nowrap ${activeTab === 'widgets' ? 'text-white' : 'text-zinc-500'}`}
+          >
+            WIDGETS
+            {activeTab === 'widgets' && <motion.div layoutId="store-tab" className="absolute bottom-0 left-0 w-full h-0.5 bg-white" />}
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-6 pt-4">
+        <AnimatePresence mode="wait">
+          {activeTab === 'apps' && (
+            <motion.div 
+              key="apps"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="space-y-4"
+            >
+              {storeApps.map(app => {
+                const isInstalled = installedAppIds.includes(app.id);
+                return (
+                  <div key={app.id} className="glass p-4 rounded-2xl flex items-center gap-4">
+                    <div className={`${app.color} w-12 h-12 rounded-xl flex items-center justify-center shadow-lg`}>
+                      <app.icon size={24} className="text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold">{app.name}</h3>
+                      <p className="text-xs text-zinc-400">{app.desc}</p>
+                    </div>
+                    <button 
+                      onClick={() => onInstall(app.id as AppId)}
+                      className={`text-xs font-bold px-4 py-2 rounded-full transition-colors`}
+                      style={{ 
+                        backgroundColor: isInstalled ? 'rgba(255,255,255,0.1)' : accent,
+                        color: isInstalled ? 'rgba(255,255,255,0.5)' : 'white'
+                      }}
+                    >
+                      {isInstalled ? 'OPEN' : 'GET'}
+                    </button>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold">{app.name}</h3>
-                    <p className="text-xs text-zinc-400">{app.desc}</p>
+                );
+              })}
+            </motion.div>
+          )}
+
+          {activeTab === 'third-party' && (
+            <motion.div 
+              key="third-party"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="space-y-4"
+            >
+              {thirdPartyApps.map(app => {
+                const isInstalled = installedAppIds.includes(app.id);
+                return (
+                  <div key={app.id} className="glass p-4 rounded-2xl flex items-center gap-4">
+                    <div className={`${app.color} w-12 h-12 rounded-xl flex items-center justify-center shadow-lg`}>
+                      <app.icon size={24} className="text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold">{app.name}</h3>
+                      <p className="text-xs text-zinc-400">{app.desc}</p>
+                    </div>
+                    <button 
+                      onClick={() => onInstall(app.id as AppId)}
+                      className={`text-xs font-bold px-4 py-2 rounded-full transition-colors`}
+                      style={{ 
+                        backgroundColor: isInstalled ? 'rgba(255,255,255,0.1)' : accent,
+                        color: isInstalled ? 'rgba(255,255,255,0.5)' : 'white'
+                      }}
+                    >
+                      {isInstalled ? 'OPEN' : 'GET'}
+                    </button>
+                  </div>
+                );
+              })}
+            </motion.div>
+          )}
+
+          {activeTab === 'widgets' && (
+            <motion.div 
+              key="widgets"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="grid grid-cols-2 gap-4"
+            >
+              {widgets.map(w => (
+                <div key={w.id} className="glass p-4 rounded-2xl flex flex-col items-center gap-3 text-center relative overflow-hidden group">
+                  <div className={`${w.color} w-12 h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                    <w.icon size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold">{w.name}</h3>
                   </div>
                   <button 
-                    onClick={() => onInstall(app.id as AppId)}
-                    className={`text-xs font-bold px-4 py-2 rounded-full transition-colors`}
-                    style={{ 
-                      backgroundColor: isInstalled ? 'rgba(255,255,255,0.1)' : accent,
-                      color: isInstalled ? 'rgba(255,255,255,0.5)' : 'white'
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent('nebula_add_widget', { detail: w.type }));
+                      setAddedWidgetId(w.id);
+                      setTimeout(() => setAddedWidgetId(null), 2000);
                     }}
+                    className={`text-[10px] font-bold px-4 py-2 rounded-full transition-all ${
+                      addedWidgetId === w.id ? 'bg-green-500 text-white' : 'bg-white/10 hover:bg-white/20'
+                    }`}
                   >
-                    {isInstalled ? 'OPEN' : 'GET'}
+                    {addedWidgetId === w.id ? 'ADDED' : 'ADD TO HOME'}
                   </button>
+                  {addedWidgetId === w.id && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute inset-0 bg-green-500/20 flex items-center justify-center backdrop-blur-sm"
+                    >
+                      <span className="text-[10px] font-bold text-green-400">WIDGET ADDED</span>
+                    </motion.div>
+                  )}
                 </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold mb-4 text-zinc-400">Widgets</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {widgets.map(w => (
-              <div key={w.id} className="glass p-4 rounded-2xl flex flex-col items-center gap-3 text-center">
-                <div className={`${w.color} w-12 h-12 rounded-xl flex items-center justify-center`}>
-                  <w.icon size={24} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold">{w.name}</h3>
-                </div>
-                <button 
-                  onClick={() => {
-                    // Logic to add widget to home screen
-                    window.dispatchEvent(new CustomEvent('nebula_add_widget', { detail: w.type }));
-                  }}
-                  className="text-[10px] font-bold px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-                >
-                  ADD TO HOME
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -1014,6 +1189,59 @@ const ACCENT_COLORS = [
   { id: 'green', name: 'Green', class: 'bg-green-600', text: 'text-green-500', hex: '#16a34a' },
   { id: 'orange', name: 'Orange', class: 'bg-orange-600', text: 'text-orange-500', hex: '#ea580c' },
 ];
+
+const MapsApp = ({ accent }: { accent: string }) => {
+  const [search, setSearch] = useState('');
+  const [mapUrl, setMapUrl] = useState('https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d15000!2d-122.4194!3d37.7749!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1648640000000!5m2!1sen!2sus');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!search.trim()) return;
+    // Simulate search by updating the embed URL with a search query
+    const encodedSearch = encodeURIComponent(search);
+    setMapUrl(`https://www.google.com/maps?q=${encodedSearch}&output=embed`);
+  };
+
+  return (
+    <div className="h-full bg-zinc-950 flex flex-col overflow-hidden">
+      <div className="p-4 glass border-b border-white/10 flex items-center gap-3">
+        <form onSubmit={handleSearch} className="flex-1 relative">
+          <input 
+            type="text" 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search Nebula Maps..." 
+            className="w-full bg-white/5 border border-white/10 rounded-full py-2 px-10 text-sm focus:outline-none focus:border-white/20 transition-all"
+          />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+        </form>
+        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+          <MapPin size={20} style={{ color: accent }} />
+        </div>
+      </div>
+      <div className="flex-1 relative">
+        <iframe 
+          src={mapUrl}
+          className="w-full h-full border-none grayscale-[0.2] contrast-[1.1]"
+          allowFullScreen
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+        <div className="absolute bottom-6 right-6 flex flex-col gap-2">
+          <button className="w-12 h-12 rounded-full bg-white text-black shadow-xl flex items-center justify-center hover:scale-110 transition-transform">
+            <Plus size={24} />
+          </button>
+          <button 
+            onClick={() => setMapUrl('https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d15000!2d-122.4194!3d37.7749!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1648640000000!5m2!1sen!2sus')}
+            className="w-12 h-12 rounded-full glass shadow-xl flex items-center justify-center hover:scale-110 transition-transform"
+          >
+            <MapPin size={24} style={{ color: accent }} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const SettingsApp = ({ 
   theme, 
@@ -1062,7 +1290,7 @@ const SettingsApp = ({
   onPowerOff: () => void,
   onRestart: () => void
 }) => {
-  const [activeSection, setActiveSection] = useState<'main' | 'wallpaper' | 'about' | 'safety' | 'accessibility' | 'medical' | 'navigation' | 'apps' | 'power'>('main');
+  const [activeSection, setActiveSection] = useState<'main' | 'wallpaper' | 'about' | 'safety' | 'accessibility' | 'medical' | 'navigation' | 'apps' | 'power' | 'update'>('main');
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateProgress, setUpdateProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1207,6 +1435,7 @@ const SettingsApp = ({
                   { icon: Shield, label: 'Safety & Emergency', color: 'text-red-500', section: 'safety' },
                   { icon: Accessibility, label: 'Accessibility', color: 'text-purple-400', section: 'accessibility' },
                   { icon: Smartphone, label: 'Navigation', color: 'text-zinc-400', section: 'navigation' },
+                  { icon: RefreshCw, label: 'System Update', color: 'text-blue-500', section: 'update' },
                   { icon: Grid3X3, label: 'Apps', color: 'text-orange-400', section: 'apps' },
                   { icon: Power, label: 'Power', color: 'text-red-500', section: 'power' },
                   { icon: Info, label: 'About Phone', color: 'text-blue-400', section: 'about' }
@@ -1435,36 +1664,64 @@ const SettingsApp = ({
                   <span className="font-mono text-[10px]">NB-992-X-2026</span>
                 </div>
               </div>
+            </motion.div>
+          )}
 
-              <div className="glass rounded-2xl p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <RefreshCw className="text-zinc-400" size={20} />
-                    <span className="font-bold">Software Update</span>
-                  </div>
-                  {!isUpdating && (
-                    <button 
-                      onClick={startUpdate}
-                      className="px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest"
-                      style={{ backgroundColor: accent }}
-                    >
-                      Check
-                    </button>
-                  )}
+          {activeSection === 'update' && (
+            <motion.div
+              key="update"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
+                <h1 className="text-2xl font-bold font-display">System Update</h1>
+              </div>
+              
+              <div className="glass rounded-2xl p-8 flex flex-col items-center text-center space-y-6">
+                <div className="w-20 h-20 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+                  <RefreshCw size={40} className={isUpdating ? 'animate-spin' : ''} />
                 </div>
-                {isUpdating && (
-                  <div className="space-y-2">
-                    <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                
+                <div className="space-y-2">
+                  <h2 className="text-xl font-bold">NebulaOS 2.0.4</h2>
+                  <p className="text-xs text-zinc-500">Your system is up to date</p>
+                </div>
+
+                {isUpdating ? (
+                  <div className="w-full space-y-4">
+                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
                       <motion.div 
-                        className="h-full"
-                        style={{ backgroundColor: accent }}
+                        className="h-full bg-blue-500"
                         initial={{ width: 0 }}
                         animate={{ width: `${updateProgress}%` }}
                       />
                     </div>
-                    <p className="text-[10px] text-zinc-500 text-center">Downloading NebulaOS 2.1.0... {updateProgress}%</p>
+                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                      <span>Downloading...</span>
+                      <span>{updateProgress}%</span>
+                    </div>
                   </div>
+                ) : (
+                  <button 
+                    onClick={startUpdate}
+                    className="px-8 py-3 rounded-2xl font-bold text-sm transition-all active:scale-95"
+                    style={{ backgroundColor: accent, color: 'white' }}
+                  >
+                    Check for Updates
+                  </button>
                 )}
+              </div>
+
+              <div className="glass rounded-2xl p-4 space-y-4">
+                <div className="flex items-center gap-3 text-zinc-400">
+                  <Info size={16} />
+                  <p className="text-[10px] leading-relaxed">
+                    System updates provide the latest features, security improvements, and bug fixes for your Nebula device. Please ensure you have a stable connection before starting.
+                  </p>
+                </div>
               </div>
             </motion.div>
           )}
@@ -1616,6 +1873,7 @@ export default function App() {
     localStorage.setItem('nebula_dark_mode', isDarkMode.toString());
   }, [isDarkMode]);
   const [isControlCenterOpen, setIsControlCenterOpen] = useState(false);
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
   const [isPoweredOff, setIsPoweredOff] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
   const [isBooting, setIsBooting] = useState(false);
@@ -1706,7 +1964,7 @@ export default function App() {
   const apps: AppConfig[] = useMemo(() => [
     { id: 'browser', name: 'Browser', icon: Globe, color: 'bg-blue-500', component: BrowserApp },
     { id: 'weather', name: 'Weather', icon: Cloud, color: 'bg-sky-400', component: WeatherApp },
-    { id: 'nebula-ai', name: 'Nebula AI', icon: Sparkles, color: 'bg-purple-600', component: NebulaAIApp },
+    { id: 'quadrais-ai', name: 'Quadrais AI', icon: Sparkles, color: 'bg-purple-600', component: QuadraisAIApp },
     { id: 'computer-hub', name: 'Computer Hub', icon: Cpu, color: 'bg-blue-600', component: ComputerHubApp },
     { id: 'music', name: 'Music', icon: MusicIcon, color: 'bg-purple-600', component: MusicApp },
     { id: 'appstore', name: 'Store', icon: ShoppingBag, color: 'bg-zinc-800', component: () => <AppStoreApp installedAppIds={installedAppIds} onInstall={toggleInstall} accent={accentColor} /> },
@@ -1721,6 +1979,7 @@ export default function App() {
     { id: 'minesweeper', name: 'Sweeper', icon: Grid3X3, color: 'bg-zinc-700', component: MinesweeperApp },
     { id: 'calculator', name: 'Calculator', icon: Calculator, color: 'bg-orange-600', component: CalculatorApp },
     { id: 'notes', name: 'Notes', icon: FileText, color: 'bg-yellow-600', component: NotesApp },
+    { id: 'maps', name: 'Maps', icon: MapPin, color: 'bg-green-600', component: MapsApp },
   ], [theme, accentColor, profile, installedAppIds, wallpaper, reduceMotion, deviceName, navigationMode]);
 
   const getAppBg = (appId: AppId, defaultColor: string) => {
@@ -1932,7 +2191,14 @@ export default function App() {
           drag="y"
           dragConstraints={{ top: 0, bottom: 0 }}
           onDragEnd={(_, info) => {
-            if (info.offset.y > 50) setIsControlCenterOpen(true);
+            if (info.offset.y > 50) {
+              const midPoint = window.innerWidth / 2;
+              if (info.point.x < midPoint) {
+                setIsNotificationCenterOpen(true);
+              } else {
+                setIsControlCenterOpen(true);
+              }
+            }
           }}
           className="h-12 px-8 flex items-center justify-between z-50 text-[var(--fg)] text-xs font-medium cursor-ns-resize"
         >
@@ -1995,7 +2261,13 @@ export default function App() {
                         value={item}
                         id={`home-item-${item.id}`}
                         onDragEnd={(_, info) => handleDragEnd(item, info)}
-                        className={`${isWidget ? 'col-span-2 row-span-1' : 'col-span-1'}`}
+                        className={`${isWidget ? 'col-span-2 row-span-1' : 'col-span-1'} cursor-grab active:cursor-grabbing`}
+                        whileDrag={{ 
+                          scale: 1.05, 
+                          zIndex: 50,
+                          boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
+                        }}
+                        layout
                       >
                         {isApp && (() => {
                           const app = apps.find(a => a.id === item.id);
@@ -2252,6 +2524,13 @@ export default function App() {
           </AnimatePresence>
 
           {/* Quick Settings / Control Center Overlay */}
+          <NotificationCenter 
+            isOpen={isNotificationCenterOpen} 
+            onClose={() => setIsNotificationCenterOpen(false)} 
+            accent={accentColor}
+            time={time}
+          />
+
           <AnimatePresence>
             {isControlCenterOpen && (
               <motion.div
