@@ -1261,8 +1261,6 @@ const SettingsApp = ({
   setDeviceName,
   navigationMode,
   setNavigationMode,
-  isDarkMode,
-  setIsDarkMode,
   installedAppIds,
   apps,
   onUninstall,
@@ -1284,8 +1282,6 @@ const SettingsApp = ({
   setDeviceName: (v: string) => void,
   navigationMode: 'gestures' | 'buttons',
   setNavigationMode: (m: 'gestures' | 'buttons') => void,
-  isDarkMode: boolean,
-  setIsDarkMode: (v: boolean) => void,
   installedAppIds: string[],
   apps: AppConfig[],
   onUninstall: (id: AppId) => void,
@@ -1413,20 +1409,6 @@ const SettingsApp = ({
                     </div>
                     <ChevronLeft size={16} className="rotate-180 opacity-30" />
                   </button>
-
-                  <div className="w-full flex items-center justify-between py-2 border-t border-white/5 mt-2">
-                    <div className="flex items-center gap-3">
-                      {isDarkMode ? <Moon className="text-zinc-400" size={18} /> : <Sun className="text-zinc-400" size={18} />}
-                      <span>Dark Mode</span>
-                    </div>
-                    <button 
-                      onClick={() => setIsDarkMode(!isDarkMode)}
-                      className={`w-10 h-5 rounded-full relative transition-colors ${isDarkMode ? '' : 'bg-zinc-300 dark:bg-zinc-800'}`}
-                      style={{ backgroundColor: isDarkMode ? accent : undefined }}
-                    >
-                      <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isDarkMode ? 'right-1' : 'left-1'}`} />
-                    </button>
-                  </div>
                 </div>
               </section>
 
@@ -1961,14 +1943,8 @@ export default function App() {
   const [accentColor, setAccentColor] = useState(() => {
     return localStorage.getItem('nebula_accent') || '#9333ea';
   });
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('nebula_dark_mode') === 'true';
-  });
   const [time, setTime] = useState(new Date());
 
-  useEffect(() => {
-    localStorage.setItem('nebula_dark_mode', isDarkMode.toString());
-  }, [isDarkMode]);
   const [isControlCenterOpen, setIsControlCenterOpen] = useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
   const [isPoweredOff, setIsPoweredOff] = useState(false);
@@ -2096,7 +2072,7 @@ export default function App() {
     { id: 'appstore', name: 'Store', icon: ShoppingBag, color: 'bg-zinc-800', component: () => <AppStoreApp installedAppIds={installedAppIds} onInstall={toggleInstall} accent={accentColor} /> },
     { id: 'camera', name: 'Camera', icon: CameraIcon, color: 'bg-zinc-700', component: () => <CameraApp onCapture={handleCapture} /> },
     { id: 'photos', name: 'Photos', icon: ImageLucide, color: 'bg-rose-500', component: () => <PhotosApp photos={photos} onUpload={handlePhotoUpload} /> },
-    { id: 'settings', name: 'Settings', icon: SettingsIcon, color: 'bg-zinc-600', component: () => <SettingsApp theme={theme} setTheme={setTheme} accent={accentColor} setAccent={setAccentColor} profile={profile} setProfile={setProfile} onOpenProfile={() => setActiveApp('profile')} wallpaper={wallpaper} setWallpaper={setWallpaper} reduceMotion={reduceMotion} setReduceMotion={setReduceMotion} deviceName={deviceName} setDeviceName={setDeviceName} navigationMode={navigationMode} setNavigationMode={setNavigationMode} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} installedAppIds={installedAppIds} apps={apps} onUninstall={handleUninstall} onPowerOff={handlePowerOff} onRestart={handleRestart} /> },
+    { id: 'settings', name: 'Settings', icon: SettingsIcon, color: 'bg-zinc-600', component: () => <SettingsApp theme={theme} setTheme={setTheme} accent={accentColor} setAccent={setAccentColor} profile={profile} setProfile={setProfile} onOpenProfile={() => setActiveApp('profile')} wallpaper={wallpaper} setWallpaper={setWallpaper} reduceMotion={reduceMotion} setReduceMotion={setReduceMotion} deviceName={deviceName} setDeviceName={setDeviceName} navigationMode={navigationMode} setNavigationMode={setNavigationMode} installedAppIds={installedAppIds} apps={apps} onUninstall={handleUninstall} onPowerOff={handlePowerOff} onRestart={handleRestart} /> },
     { id: 'profile', name: 'Profile', icon: User, color: 'bg-indigo-500', component: () => <ProfileApp profile={profile} setProfile={setProfile} accent={accentColor} /> },
     { id: 'messages', name: 'Messages', icon: MessageSquare, color: 'bg-blue-500', component: MessagesApp },
     { id: 'calendar', name: 'Calendar', icon: CalendarIcon, color: 'bg-green-500', component: CalendarApp },
@@ -2237,7 +2213,7 @@ export default function App() {
   };
 
   return (
-    <div className={`fixed inset-0 flex items-center justify-center ${theme.bg} transition-colors duration-700 ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`fixed inset-0 flex items-center justify-center ${theme.bg} transition-colors duration-700 dark`}>
       {/* Wallpaper */}
       <div className="absolute inset-0 z-0">
         <img src={wallpaper} alt="Wallpaper" className="w-full h-full object-cover opacity-100 transition-all duration-1000" referrerPolicy="no-referrer" />

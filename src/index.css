@@ -12,14 +12,6 @@
 }
 
 :root {
-  --bg: #f4f4f5;
-  --fg: #09090b;
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(0, 0, 0, 0.1);
-  --glass-text: #09090b;
-}
-
-.dark {
   --bg: #09090b;
   --fg: #f4f4f5;
   --glass-bg: rgba(255, 255, 255, 0.05);
