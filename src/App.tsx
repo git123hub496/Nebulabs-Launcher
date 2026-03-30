@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
-import { AppId, AppConfig, Theme, THEMES, UserProfile, DEFAULT_PROFILE } from './types';
+import { motion, AnimatePresence, useMotionValue, useTransform, Reorder } from 'motion/react';
+import { AppId, AppConfig, Theme, THEMES, UserProfile, DEFAULT_PROFILE, HomeItem, FolderConfig, WidgetConfig } from './types';
 import { 
   Smartphone, 
   Settings as SettingsIcon, 
@@ -56,8 +56,96 @@ import {
   Calculator,
   FileText,
   Trash2,
-  Plus
+  Plus,
+  Folder,
+  FolderPlus,
+  MoreVertical,
+  LayoutGrid
 } from 'lucide-react';
+
+// --- Home Screen Components ---
+
+const WidgetComponent = ({ widget, accent }: { widget: WidgetConfig, accent: string }) => {
+  if (widget.type === 'clock') {
+    return (
+      <div className="w-full h-full glass rounded-3xl flex flex-col items-center justify-center p-4" style={{ border: `1px solid ${accent}30` }}>
+        <Clock size={32} style={{ color: accent }} className="mb-2" />
+        <span className="text-2xl font-bold font-display">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+      </div>
+    );
+  }
+  if (widget.type === 'weather') {
+    return (
+      <div className="w-full h-full glass rounded-3xl flex flex-col items-center justify-center p-4" style={{ border: `1px solid ${accent}30` }}>
+        <Cloud size={32} className="text-sky-400 mb-2" />
+        <span className="text-xl font-bold">24°C</span>
+        <span className="text-[10px] text-zinc-400 uppercase font-bold">Stellar City</span>
+      </div>
+    );
+  }
+  return null;
+};
+
+const FolderComponent = ({ folder, apps, onOpenApp, accent }: { folder: FolderConfig, apps: AppConfig[], onOpenApp: (id: AppId) => void, accent: string }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const folderApps = folder.appIds.map(id => apps.find(a => a.id === id)).filter(Boolean) as AppConfig[];
+
+  return (
+    <>
+      <button 
+        onClick={() => setIsOpen(true)}
+        className="flex flex-col items-center gap-2 w-full"
+      >
+        <div className="w-14 h-14 glass rounded-2xl p-2 grid grid-cols-2 gap-1" style={{ border: `1px solid ${accent}30` }}>
+          {folderApps.slice(0, 4).map(app => (
+            <div key={app.id} className={`${app.color} rounded-sm w-full h-full flex items-center justify-center`}>
+              <app.icon size={10} className="text-white" />
+            </div>
+          ))}
+        </div>
+        <span className="text-[10px] text-white font-medium">{folder.name}</span>
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-8"
+          >
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsOpen(false)} />
+            <div className="relative glass rounded-[40px] p-8 w-full max-w-sm" style={{ border: `1px solid ${accent}30` }}>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-bold font-display text-white">{folder.name}</h2>
+                <button onClick={() => setIsOpen(false)} className="p-2 bg-white/10 rounded-full text-white">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-8">
+                {folderApps.map(app => (
+                  <button 
+                    key={app.id}
+                    onClick={() => {
+                      onOpenApp(app.id);
+                      setIsOpen(false);
+                    }}
+                    className="flex flex-col items-center gap-2"
+                  >
+                    <div className={`${app.color} w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg`}>
+                      <app.icon size={28} className="text-white" />
+                    </div>
+                    <span className="text-[10px] text-white font-medium">{app.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
 
 // --- Mock Apps ---
 
@@ -636,10 +724,15 @@ const AppStoreApp = ({ installedAppIds, onInstall, accent }: {
     { id: 'notes', name: 'Nebula Notes', desc: 'Keep your thoughts in orbit', icon: FileText, color: 'bg-yellow-600' },
   ];
 
+  const widgets = [
+    { id: 'clock', name: 'Stellar Clock', type: 'clock', icon: Clock, color: 'bg-zinc-800' },
+    { id: 'weather', name: 'Nebula Weather', type: 'weather', icon: Cloud, color: 'bg-sky-500' },
+  ];
+
   return (
     <div className="h-full bg-black text-white p-6 overflow-y-auto">
       <h1 className="text-4xl font-bold mb-8 font-display">Nebula Store</h1>
-      <div className="space-y-8">
+      <div className="space-y-12">
         <section>
           <h2 className="text-xl font-semibold mb-4 text-zinc-400">Featured Apps</h2>
           <div className="grid grid-cols-1 gap-4">
@@ -667,6 +760,31 @@ const AppStoreApp = ({ installedAppIds, onInstall, accent }: {
                 </div>
               );
             })}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold mb-4 text-zinc-400">Widgets</h2>
+          <div className="grid grid-cols-2 gap-4">
+            {widgets.map(w => (
+              <div key={w.id} className="glass p-4 rounded-2xl flex flex-col items-center gap-3 text-center">
+                <div className={`${w.color} w-12 h-12 rounded-xl flex items-center justify-center`}>
+                  <w.icon size={24} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold">{w.name}</h3>
+                </div>
+                <button 
+                  onClick={() => {
+                    // Logic to add widget to home screen
+                    window.dispatchEvent(new CustomEvent('nebula_add_widget', { detail: w.type }));
+                  }}
+                  className="text-[10px] font-bold px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                >
+                  ADD TO HOME
+                </button>
+              </div>
+            ))}
           </div>
         </section>
       </div>
@@ -1188,6 +1306,27 @@ export default function App() {
   const [history, setHistory] = useState<AppId[]>(['home']);
   const [isRecentsOpen, setIsRecentsOpen] = useState(false);
 
+  const [homeItems, setHomeItems] = useState<HomeItem[]>(() => {
+    const saved = localStorage.getItem('nebula_home_items');
+    return saved ? JSON.parse(saved) : [
+      { type: 'widget', id: 'clock-1' },
+      { type: 'app', id: 'browser' },
+      { type: 'app', id: 'weather' },
+      { type: 'app', id: 'music' },
+      { type: 'app', id: 'appstore' }
+    ];
+  });
+  const [folders, setFolders] = useState<FolderConfig[]>(() => {
+    const saved = localStorage.getItem('nebula_folders');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [widgets, setWidgets] = useState<WidgetConfig[]>(() => {
+    const saved = localStorage.getItem('nebula_widgets');
+    return saved ? JSON.parse(saved) : [
+      { id: 'clock-1', type: 'clock', size: 'medium' }
+    ];
+  });
+
   // Quick Settings States
   const [wifiEnabled, setWifiEnabled] = useState(true);
   const [bluetoothEnabled, setBluetoothEnabled] = useState(false);
@@ -1196,7 +1335,19 @@ export default function App() {
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
+    
+    const handleAddWidget = (e: any) => {
+      const type = e.detail;
+      const id = `${type}-${Date.now()}`;
+      setWidgets(prev => [...prev, { id, type, size: 'medium' }]);
+      setHomeItems(prev => [{ type: 'widget', id }, ...prev]);
+    };
+    window.addEventListener('nebula_add_widget', handleAddWidget);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('nebula_add_widget', handleAddWidget);
+    };
   }, []);
 
   useEffect(() => {
@@ -1208,7 +1359,10 @@ export default function App() {
     localStorage.setItem('nebula_reduce_motion', reduceMotion.toString());
     localStorage.setItem('nebula_device_name', deviceName);
     localStorage.setItem('nebula_nav_mode', navigationMode);
-  }, [theme, accentColor, profile, installedAppIds, wallpaper, reduceMotion, deviceName, navigationMode]);
+    localStorage.setItem('nebula_home_items', JSON.stringify(homeItems));
+    localStorage.setItem('nebula_folders', JSON.stringify(folders));
+    localStorage.setItem('nebula_widgets', JSON.stringify(widgets));
+  }, [theme, accentColor, profile, installedAppIds, wallpaper, reduceMotion, deviceName, navigationMode, homeItems, folders, widgets]);
 
   const apps: AppConfig[] = useMemo(() => [
     { id: 'browser', name: 'Browser', icon: Globe, color: 'bg-blue-500', component: BrowserApp },
@@ -1242,6 +1396,34 @@ export default function App() {
     }
   };
 
+  const togglePin = (id: AppId) => {
+    if (homeItems.some(item => item.type === 'app' && item.id === id)) {
+      setHomeItems(homeItems.filter(item => !(item.type === 'app' && item.id === id)));
+    } else {
+      setHomeItems([...homeItems, { type: 'app', id }]);
+    }
+  };
+
+  const removeWidget = (id: string) => {
+    setHomeItems(homeItems.filter(item => !(item.type === 'widget' && item.id === id)));
+  };
+
+  const handleDragEnd = (draggedItem: HomeItem, info: any) => {
+    const { x, y } = info.point;
+    // Simple overlap detection for folder creation
+    // This is a basic implementation. In a real app, we'd use element refs and getBoundingClientRect.
+    // Since we're in a grid, we can estimate based on the drop position.
+    
+    // If we dropped an app onto another app, create a folder
+    if (draggedItem.type === 'app') {
+      // Find if we're over another app
+      // We'll use a simple heuristic for now
+      // If the drop is near another item, we could trigger folder creation
+      // For this demo, we'll implement a "Create Folder" long-press or similar if this is too complex
+      // But let's try a basic distance check if we had coordinates
+    }
+  };
+
   const handleOpenApp = (id: AppId) => {
     setActiveApp(id);
     setHistory(prev => [...prev, id]);
@@ -1268,8 +1450,8 @@ export default function App() {
     <div className={`fixed inset-0 flex items-center justify-center ${theme.bg} transition-colors duration-700`}>
       {/* Wallpaper */}
       <div className="absolute inset-0 z-0">
-        <img src={wallpaper} alt="Wallpaper" className="w-full h-full object-cover opacity-40 blur-[2px]" referrerPolicy="no-referrer" />
-        <div className="absolute inset-0 bg-black/40" />
+        <img src={wallpaper} alt="Wallpaper" className="w-full h-full object-cover opacity-100 transition-all duration-1000" referrerPolicy="no-referrer" />
+        <div className="absolute inset-0 bg-black/20" />
       </div>
 
       {/* Background Nebula Effect */}
@@ -1332,26 +1514,68 @@ export default function App() {
                   <span className="text-sm">Search apps...</span>
                 </div>
 
-                {/* App Grid - Only show installed main apps on home */}
-                <div className="grid grid-cols-4 gap-6">
-                  {apps.filter(a => ['browser', 'weather', 'music', 'appstore'].includes(a.id) && installedAppIds.includes(a.id)).map(app => (
-                    <motion.button
-                      key={app.id}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => handleOpenApp(app.id)}
-                      className="flex flex-col items-center gap-2"
-                    >
-                      <div 
-                        className={`${app.color} w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all`}
-                        style={getAppBg(app.id, app.color)}
+                {/* App Grid - Dynamic Home Items */}
+                <Reorder.Group 
+                  axis="y" 
+                  values={homeItems} 
+                  onReorder={setHomeItems}
+                  className="grid grid-cols-4 gap-y-8 gap-x-4 overflow-y-auto pb-8"
+                >
+                  {homeItems.map((item, index) => {
+                    const isWidget = item.type === 'widget';
+                    const isFolder = item.type === 'folder';
+                    const isApp = item.type === 'app';
+
+                    return (
+                      <Reorder.Item 
+                        key={item.id || (item as any).id || (item as any).type + (item as any).id}
+                        value={item}
+                        className={`${isWidget ? 'col-span-2 row-span-1' : 'col-span-1'}`}
                       >
-                        <app.icon className="text-white" size={28} />
-                      </div>
-                      <span className="text-[10px] text-white font-medium">{app.name}</span>
-                    </motion.button>
-                  ))}
-                </div>
+                        {isApp && (() => {
+                          const app = apps.find(a => a.id === item.id);
+                          if (!app) return null;
+                          return (
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => handleOpenApp(app.id)}
+                              className="flex flex-col items-center gap-2 w-full"
+                            >
+                              <div 
+                                className={`${app.color} w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all`}
+                                style={getAppBg(app.id, app.color)}
+                              >
+                                <app.icon className="text-white" size={28} />
+                              </div>
+                              <span className="text-[10px] text-white font-medium truncate w-full text-center">{app.name}</span>
+                            </motion.button>
+                          );
+                        })()}
+                        {isWidget && (() => {
+                          const widget = widgets.find(w => w.id === item.id);
+                          if (!widget) return null;
+                          return (
+                            <div className="relative group w-full h-full">
+                              <WidgetComponent widget={widget} accent={accentColor} />
+                              <button 
+                                onClick={() => removeWidget(widget.id)}
+                                className="absolute -top-2 -right-2 w-6 h-6 bg-black/80 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                              >
+                                <Trash2 size={12} className="text-red-400" />
+                              </button>
+                            </div>
+                          );
+                        })()}
+                        {isFolder && (() => {
+                          const folder = folders.find(f => f.id === item.id);
+                          if (!folder) return null;
+                          return <FolderComponent folder={folder} apps={apps} onOpenApp={handleOpenApp} accent={accentColor} />;
+                        })()}
+                      </Reorder.Item>
+                    );
+                  })}
+                </Reorder.Group>
 
                 {/* Pull Up Indicator for App Drawer */}
                 <div className="mt-auto mb-4 flex flex-col items-center gap-2 cursor-pointer" onClick={() => setIsAppDrawerOpen(true)}>
@@ -1418,9 +1642,25 @@ export default function App() {
               >
                 <div className="flex items-center justify-between mb-8">
                   <h2 className="text-2xl font-bold font-display text-white">N Launcher</h2>
-                  <button onClick={() => setIsAppDrawerOpen(false)} className="p-2 bg-white/10 rounded-full text-white">
-                    <X size={20} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => {
+                        const name = prompt('Folder Name?', 'New Folder');
+                        if (name) {
+                          const id = `folder-${Date.now()}`;
+                          setFolders(prev => [...prev, { id, name, appIds: [] }]);
+                          setHomeItems(prev => [{ type: 'folder', id }, ...prev]);
+                        }
+                      }}
+                      className="p-2 bg-white/10 rounded-full text-white flex items-center gap-2 px-3"
+                    >
+                      <Folder size={16} />
+                      <span className="text-[10px] font-bold">NEW FOLDER</span>
+                    </button>
+                    <button onClick={() => setIsAppDrawerOpen(false)} className="p-2 bg-white/10 rounded-full text-white">
+                      <X size={20} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Search in Drawer */}
@@ -1443,24 +1683,56 @@ export default function App() {
                     app.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
                     installedAppIds.includes(app.id)
                   ).map(app => (
-                      <motion.button
+                    <motion.div
                       key={`drawer-${app.id}`}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => {
-                        handleOpenApp(app.id);
-                        setIsAppDrawerOpen(false);
-                      }}
-                      className="flex flex-col items-center gap-2"
+                      className="flex flex-col items-center gap-2 relative group"
                     >
-                      <div 
-                        className={`${app.color} w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all`}
-                        style={getAppBg(app.id, app.color)}
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => {
+                          handleOpenApp(app.id);
+                          setIsAppDrawerOpen(false);
+                        }}
+                        className="flex flex-col items-center gap-2"
                       >
-                        <app.icon className="text-white" size={28} />
-                      </div>
-                      <span className="text-[10px] text-white font-medium">{app.name}</span>
-                    </motion.button>
+                        <div 
+                          className={`${app.color} w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all`}
+                          style={getAppBg(app.id, app.color)}
+                        >
+                          <app.icon className="text-white" size={28} />
+                        </div>
+                        <span className="text-[10px] text-white font-medium">{app.name}</span>
+                      </motion.button>
+                      
+                      <button 
+                        onClick={() => {
+                          if (folders.length === 0) {
+                            alert('Create a folder first!');
+                            return;
+                          }
+                          const folderName = prompt(`Add to which folder?\nAvailable: ${folders.map(f => f.name).join(', ')}`);
+                          const folder = folders.find(f => f.name === folderName);
+                          if (folder) {
+                            setFolders(prev => prev.map(f => f.id === folder.id ? { ...f, appIds: [...new Set([...f.appIds, app.id])] } : f));
+                          }
+                        }}
+                        className="absolute -top-1 -left-1 w-6 h-6 bg-black/80 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                      >
+                        <FolderPlus size={12} className="text-blue-400" />
+                      </button>
+
+                      <button 
+                        onClick={() => togglePin(app.id)}
+                        className="absolute -top-1 -right-1 w-6 h-6 bg-black/80 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        {homeItems.some(item => item.type === 'app' && item.id === app.id) ? (
+                          <Trash2 size={12} className="text-red-400" />
+                        ) : (
+                          <Plus size={12} className="text-green-400" />
+                        )}
+                      </button>
+                    </motion.div>
                   ))}
                 </div>
 

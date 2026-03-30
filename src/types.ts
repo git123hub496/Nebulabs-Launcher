@@ -33,6 +33,23 @@ import {
 
 export type AppId = 'home' | 'settings' | 'appstore' | 'camera' | 'weather' | 'music' | 'messages' | 'calendar' | 'browser' | 'profile' | 'paint' | 'snake' | 'minesweeper' | 'emails' | 'calculator' | 'notes';
 
+export interface WidgetConfig {
+  id: string;
+  type: 'weather' | 'clock' | 'music' | 'calendar';
+  size: 'small' | 'medium' | 'large';
+}
+
+export interface FolderConfig {
+  id: string;
+  name: string;
+  appIds: AppId[];
+}
+
+export type HomeItem = 
+  | { type: 'app'; id: AppId }
+  | { type: 'folder'; id: string }
+  | { type: 'widget'; id: string };
+
 export interface UserProfile {
   username: string;
   bio: string;
