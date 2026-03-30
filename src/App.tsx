@@ -166,7 +166,7 @@ const ProfileApp = ({ profile, setProfile, accent }: { profile: UserProfile, set
   };
 
   return (
-    <div className="h-full bg-zinc-950 text-white p-6 overflow-y-auto">
+    <div className="h-full bg-[var(--bg)] text-[var(--fg)] p-6 overflow-y-auto transition-colors duration-300">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold font-display">Profile</h1>
         <button 
@@ -358,8 +358,8 @@ const NebulaAIApp = () => {
   };
 
   return (
-    <div className="h-full bg-zinc-950 text-white flex flex-col">
-      <div className="p-6 border-b border-white/10 flex items-center gap-3">
+    <div className="h-full bg-[var(--bg)] text-[var(--fg)] flex flex-col transition-colors duration-300">
+      <div className="p-6 border-b border-[var(--glass-border)] flex items-center gap-3">
         <Sparkles className="text-purple-400" />
         <h1 className="text-xl font-bold font-display">Nebula AI</h1>
       </div>
@@ -389,7 +389,7 @@ const NebulaAIApp = () => {
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleSend()}
           placeholder="Ask Nebula AI..."
-          className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-purple-500"
+          className="flex-1 bg-[var(--fg)]/5 border border-[var(--fg)]/10 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-purple-500"
         />
         <button 
           onClick={handleSend}
@@ -418,7 +418,7 @@ const ComputerHubApp = () => {
   }, []);
 
   return (
-    <div className="h-full bg-zinc-950 text-white p-8 flex flex-col gap-8">
+    <div className="h-full bg-[var(--bg)] text-[var(--fg)] p-8 flex flex-col gap-8 transition-colors duration-300">
       <div className="flex items-center gap-4">
         <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
           <Cpu className="text-blue-400" />
@@ -460,7 +460,7 @@ const ComputerHubApp = () => {
 };
 
 const MusicApp = () => (
-  <div className="h-full bg-zinc-900 p-8 flex flex-col">
+  <div className="h-full bg-[var(--bg)] p-8 flex flex-col transition-colors duration-300">
     <div className="flex-1 flex flex-col items-center justify-center">
       <div className="w-64 h-64 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl shadow-2xl mb-8 flex items-center justify-center">
         <MusicIcon size={80} className="text-white opacity-50" />
@@ -506,7 +506,7 @@ const MessagesApp = () => {
   };
 
   return (
-    <div className="h-full bg-zinc-950 text-white flex flex-col">
+    <div className="h-full bg-[var(--bg)] text-[var(--fg)] flex flex-col transition-colors duration-300">
       <div className="p-6 border-b border-white/5">
         <h1 className="text-2xl font-bold font-display">Messages</h1>
       </div>
@@ -543,7 +543,7 @@ const MessagesApp = () => {
 };
 
 const CalendarApp = () => (
-  <div className="h-full bg-zinc-950 text-white p-6">
+  <div className="h-full bg-[var(--bg)] text-[var(--fg)] p-6 transition-colors duration-300">
     <h1 className="text-2xl font-bold font-display mb-8">Calendar</h1>
     <div className="grid grid-cols-7 gap-2 mb-8">
       {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
@@ -566,7 +566,7 @@ const CalendarApp = () => (
 );
 
 const EmailsApp = () => (
-  <div className="h-full bg-zinc-950 text-white flex flex-col">
+  <div className="h-full bg-[var(--bg)] text-[var(--fg)] flex flex-col transition-colors duration-300">
     <div className="p-6 border-b border-white/5 flex items-center justify-between">
       <h1 className="text-2xl font-bold font-display">Inbox</h1>
       <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-xs font-bold">N</div>
@@ -646,7 +646,7 @@ const PaintApp = () => {
   };
 
   return (
-    <div className="h-full bg-zinc-900 flex flex-col">
+    <div className="h-full bg-[var(--bg)] flex flex-col transition-colors duration-300">
       <div className="p-4 flex items-center justify-between bg-zinc-950">
         <div className="flex gap-2">
           {['#9333ea', '#ef4444', '#22c55e', '#3b82f6', '#ffffff', '#000000'].map(c => (
@@ -721,7 +721,7 @@ const CalculatorApp = () => {
   };
 
   return (
-    <div className="h-full bg-black text-white p-6 flex flex-col">
+    <div className="h-full bg-[var(--bg)] text-[var(--fg)] p-6 flex flex-col transition-colors duration-300">
       <div className="flex-1 flex flex-col justify-end text-right mb-8">
         <div className="text-zinc-500 text-sm h-6">{prevValue} {op}</div>
         <div className="text-6xl font-light overflow-hidden">{display}</div>
@@ -764,8 +764,8 @@ const NotesApp = () => {
   };
 
   return (
-    <div className="h-full bg-zinc-950 text-white flex flex-col">
-      <div className="p-6 border-b border-white/5 flex items-center justify-between">
+    <div className="h-full bg-[var(--bg)] text-[var(--fg)] flex flex-col transition-colors duration-300">
+      <div className="p-6 border-b border-[var(--glass-border)] flex items-center justify-between">
         <h1 className="text-2xl font-bold font-display">Notes</h1>
         <button onClick={() => setIsAdding(true)} className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center">
           <Plus size={24} />
@@ -838,7 +838,7 @@ const SnakeApp = () => {
   }, [dir, food, gameOver]);
 
   return (
-    <div className="h-full bg-zinc-950 flex flex-col items-center justify-center p-8">
+    <div className="h-full bg-[var(--bg)] flex flex-col items-center justify-center p-8 transition-colors duration-300">
       <div className="mb-4 flex justify-between w-full text-white font-bold">
         <span>Score: {score}</span>
         {gameOver && <span className="text-red-500">GAME OVER</span>}
@@ -895,7 +895,7 @@ const MinesweeperApp = () => {
   };
 
   return (
-    <div className="h-full bg-zinc-950 flex flex-col items-center justify-center p-6">
+    <div className="h-full bg-[var(--bg)] flex flex-col items-center justify-center p-6 transition-colors duration-300">
       <h2 className="text-2xl font-bold text-white mb-6 font-display">Minesweeper</h2>
       <div className="grid grid-cols-10 gap-1 bg-zinc-900 p-2 rounded-xl border border-white/10">
         {grid.map(cell => (
@@ -944,7 +944,7 @@ const AppStoreApp = ({ installedAppIds, onInstall, accent }: {
   ];
 
   return (
-    <div className="h-full bg-black text-white p-6 overflow-y-auto">
+    <div className="h-full bg-[var(--bg)] text-[var(--fg)] p-6 overflow-y-auto transition-colors duration-300">
       <h1 className="text-4xl font-bold mb-8 font-display">Nebula Store</h1>
       <div className="space-y-12">
         <section>
@@ -1031,6 +1031,8 @@ const SettingsApp = ({
   setDeviceName,
   navigationMode,
   setNavigationMode,
+  isDarkMode,
+  setIsDarkMode,
   installedAppIds,
   apps,
   onUninstall,
@@ -1052,6 +1054,8 @@ const SettingsApp = ({
   setDeviceName: (v: string) => void,
   navigationMode: 'gestures' | 'buttons',
   setNavigationMode: (m: 'gestures' | 'buttons') => void,
+  isDarkMode: boolean,
+  setIsDarkMode: (v: boolean) => void,
   installedAppIds: string[],
   apps: AppConfig[],
   onUninstall: (id: AppId) => void,
@@ -1101,7 +1105,7 @@ const SettingsApp = ({
   };
 
   return (
-    <div className="h-full bg-zinc-950 text-white overflow-hidden flex flex-col">
+    <div className="h-full bg-[var(--bg)] text-[var(--fg)] overflow-hidden flex flex-col transition-colors duration-300">
       <div className="flex-1 overflow-y-auto p-6">
         <AnimatePresence mode="wait">
           {activeSection === 'main' && (
@@ -1179,6 +1183,20 @@ const SettingsApp = ({
                     </div>
                     <ChevronLeft size={16} className="rotate-180 opacity-30" />
                   </button>
+
+                  <div className="w-full flex items-center justify-between py-2 border-t border-white/5 mt-2">
+                    <div className="flex items-center gap-3">
+                      {isDarkMode ? <Moon className="text-zinc-400" size={18} /> : <Sun className="text-zinc-400" size={18} />}
+                      <span>Dark Mode</span>
+                    </div>
+                    <button 
+                      onClick={() => setIsDarkMode(!isDarkMode)}
+                      className={`w-10 h-5 rounded-full relative transition-colors ${isDarkMode ? '' : 'bg-zinc-300 dark:bg-zinc-800'}`}
+                      style={{ backgroundColor: isDarkMode ? accent : undefined }}
+                    >
+                      <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isDarkMode ? 'right-1' : 'left-1'}`} />
+                    </button>
+                  </div>
                 </div>
               </section>
 
@@ -1589,7 +1607,14 @@ export default function App() {
   const [accentColor, setAccentColor] = useState(() => {
     return localStorage.getItem('nebula_accent') || '#9333ea';
   });
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('nebula_dark_mode') === 'true';
+  });
   const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    localStorage.setItem('nebula_dark_mode', isDarkMode.toString());
+  }, [isDarkMode]);
   const [isControlCenterOpen, setIsControlCenterOpen] = useState(false);
   const [isPoweredOff, setIsPoweredOff] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
@@ -1686,7 +1711,7 @@ export default function App() {
     { id: 'music', name: 'Music', icon: MusicIcon, color: 'bg-purple-600', component: MusicApp },
     { id: 'appstore', name: 'Store', icon: ShoppingBag, color: 'bg-zinc-800', component: () => <AppStoreApp installedAppIds={installedAppIds} onInstall={toggleInstall} accent={accentColor} /> },
     { id: 'camera', name: 'Camera', icon: CameraIcon, color: 'bg-zinc-700', component: CameraApp },
-    { id: 'settings', name: 'Settings', icon: SettingsIcon, color: 'bg-zinc-600', component: () => <SettingsApp theme={theme} setTheme={setTheme} accent={accentColor} setAccent={setAccentColor} profile={profile} setProfile={setProfile} onOpenProfile={() => setActiveApp('profile')} wallpaper={wallpaper} setWallpaper={setWallpaper} reduceMotion={reduceMotion} setReduceMotion={setReduceMotion} deviceName={deviceName} setDeviceName={setDeviceName} navigationMode={navigationMode} setNavigationMode={setNavigationMode} installedAppIds={installedAppIds} apps={apps} onUninstall={handleUninstall} onPowerOff={handlePowerOff} onRestart={handleRestart} /> },
+    { id: 'settings', name: 'Settings', icon: SettingsIcon, color: 'bg-zinc-600', component: () => <SettingsApp theme={theme} setTheme={setTheme} accent={accentColor} setAccent={setAccentColor} profile={profile} setProfile={setProfile} onOpenProfile={() => setActiveApp('profile')} wallpaper={wallpaper} setWallpaper={setWallpaper} reduceMotion={reduceMotion} setReduceMotion={setReduceMotion} deviceName={deviceName} setDeviceName={setDeviceName} navigationMode={navigationMode} setNavigationMode={setNavigationMode} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} installedAppIds={installedAppIds} apps={apps} onUninstall={handleUninstall} onPowerOff={handlePowerOff} onRestart={handleRestart} /> },
     { id: 'profile', name: 'Profile', icon: User, color: 'bg-indigo-500', component: () => <ProfileApp profile={profile} setProfile={setProfile} accent={accentColor} /> },
     { id: 'messages', name: 'Messages', icon: MessageSquare, color: 'bg-blue-500', component: MessagesApp },
     { id: 'calendar', name: 'Calendar', icon: CalendarIcon, color: 'bg-green-500', component: CalendarApp },
@@ -1826,7 +1851,7 @@ export default function App() {
   };
 
   return (
-    <div className={`fixed inset-0 flex items-center justify-center ${theme.bg} transition-colors duration-700`}>
+    <div className={`fixed inset-0 flex items-center justify-center ${theme.bg} transition-colors duration-700 ${isDarkMode ? 'dark' : ''}`}>
       {/* Wallpaper */}
       <div className="absolute inset-0 z-0">
         <img src={wallpaper} alt="Wallpaper" className="w-full h-full object-cover opacity-100 transition-all duration-1000" referrerPolicy="no-referrer" />
@@ -1899,7 +1924,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* OS Container - Full Screen with Square Edges */}
-      <div className={`relative w-full h-full bg-black overflow-hidden flex flex-col transition-all duration-700 ${isPoweredOff ? 'brightness-0' : ''}`}>
+      <div className={`relative w-full h-full bg-[var(--bg)] overflow-hidden flex flex-col transition-all duration-700 ${isPoweredOff ? 'brightness-0' : ''}`}>
         
         {/* Status Bar / Swipe Down Trigger */}
         {/* Status Bar / Gesture Area */}
@@ -1909,7 +1934,7 @@ export default function App() {
           onDragEnd={(_, info) => {
             if (info.offset.y > 50) setIsControlCenterOpen(true);
           }}
-          className="h-12 px-8 flex items-center justify-between z-50 text-white text-xs font-medium cursor-ns-resize"
+          className="h-12 px-8 flex items-center justify-between z-50 text-[var(--fg)] text-xs font-medium cursor-ns-resize"
         >
           <div className="flex items-center gap-2">
             <svg width="16" height="16" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" className="opacity-80">
@@ -2078,10 +2103,10 @@ export default function App() {
                 onDragEnd={(_, info) => {
                   if (info.offset.y > 100) setIsAppDrawerOpen(false);
                 }}
-                className="absolute inset-0 z-[100] bg-black/90 backdrop-blur-xl p-8 pt-16 flex flex-col"
+                className="absolute inset-0 z-[100] bg-[var(--bg)]/90 backdrop-blur-xl p-8 pt-16 flex flex-col transition-colors duration-300"
               >
                 <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl font-bold font-display text-white">N Launcher</h2>
+                  <h2 className="text-2xl font-bold font-display text-[var(--fg)]">N Launcher</h2>
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={() => {
@@ -2237,7 +2262,7 @@ export default function App() {
                 className="absolute inset-0 z-[100] glass p-8 pt-16 flex flex-col gap-6"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-xl font-bold font-display text-white">Quick Settings</h2>
+                  <h2 className="text-xl font-bold font-display text-[var(--fg)]">Quick Settings</h2>
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={() => {
@@ -2342,7 +2367,7 @@ export default function App() {
         </div>
 
         {/* Navigation Bar */}
-        <div className="h-16 relative bg-black/20 backdrop-blur-md border-t border-white/5 overflow-hidden">
+        <div className="h-16 relative bg-[var(--glass-bg)] backdrop-blur-md border-t border-[var(--glass-border)] overflow-hidden transition-colors duration-300">
           {navigationMode === 'gestures' ? (
             <motion.div 
               drag
@@ -2401,10 +2426,10 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 z-[200] bg-black/80 backdrop-blur-xl p-8 flex flex-col"
+              className="absolute inset-0 z-[200] bg-[var(--bg)]/80 backdrop-blur-xl p-8 flex flex-col transition-colors duration-300"
             >
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-bold font-display text-white">Recents</h2>
+                <h2 className="text-2xl font-bold font-display text-[var(--fg)]">Recents</h2>
                 <button onClick={() => setIsRecentsOpen(false)} className="p-2 bg-white/10 rounded-full text-white">
                   <X size={20} />
                 </button>

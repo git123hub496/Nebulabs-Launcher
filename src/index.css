@@ -12,8 +12,19 @@
 }
 
 :root {
-  --bg: #0a0a0a;
-  --fg: #ffffff;
+  --bg: #f4f4f5;
+  --fg: #09090b;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --glass-text: #09090b;
+}
+
+.dark {
+  --bg: #09090b;
+  --fg: #f4f4f5;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-text: #ffffff;
 }
 
 body {
@@ -21,12 +32,14 @@ body {
   color: var(--fg);
   overflow: hidden;
   font-family: var(--font-sans);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .glass {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-bg);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glass-border);
+  color: var(--glass-text);
 }
 
 .nebula-gradient {
