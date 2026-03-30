@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, Reorder } from 'motion/react';
+import { GoogleGenAI } from "@google/genai";
 import { AppId, AppConfig, Theme, THEMES, UserProfile, DEFAULT_PROFILE, HomeItem, FolderConfig, WidgetConfig } from './types';
 import { 
   Smartphone, 
@@ -57,10 +58,16 @@ import {
   FileText,
   Trash2,
   Plus,
+  Power,
   Folder,
   FolderPlus,
   MoreVertical,
-  LayoutGrid
+  LayoutGrid,
+  Send,
+  Cpu,
+  Sparkles,
+  Terminal,
+  Activity
 } from 'lucide-react';
 
 // --- Home Screen Components ---
@@ -251,35 +258,206 @@ const BrowserApp = () => (
     <div className="p-4 bg-zinc-100 border-b flex items-center gap-2">
       <div className="flex-1 bg-white rounded-full px-4 py-1 text-sm border flex items-center gap-2">
         <Globe size={14} className="text-zinc-400" />
-        <span>nebulabs.com</span>
+        <span>google.com</span>
       </div>
     </div>
-    <div className="flex-1 p-8 flex flex-col items-center justify-center text-center">
-      <Globe size={64} className="text-blue-500 mb-4" />
-      <h2 className="text-2xl font-bold mb-2">Welcome to the Future</h2>
-      <p className="text-zinc-500">The Nebulabs browser is lightning fast and privacy-focused.</p>
+    <div className="flex-1">
+      <iframe 
+        src="https://www.google.com/search?igu=1" 
+        className="w-full h-full border-none"
+        title="Google"
+      />
     </div>
   </div>
 );
 
-const WeatherApp = () => (
-  <div className="h-full bg-gradient-to-b from-blue-400 to-blue-600 p-8 text-white">
-    <div className="text-center mt-12">
-      <h2 className="text-3xl font-light">Nebula City</h2>
-      <div className="text-8xl font-thin my-4">24°</div>
-      <p className="text-xl">Mostly Clear</p>
-    </div>
-    <div className="mt-12 grid grid-cols-4 gap-4">
-      {['Mon', 'Tue', 'Wed', 'Thu'].map(day => (
-        <div key={day} className="text-center">
-          <p className="text-sm opacity-70">{day}</p>
-          <Cloud className="mx-auto my-2" size={24} />
-          <p className="font-bold">22°</p>
+const WeatherApp = () => {
+  const [weather, setWeather] = useState<{ temp: string, condition: string, city: string } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+        const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: "Give me a creative, futuristic weather report for 'Nebula City'. Return ONLY a JSON object with keys 'temp' (string, e.g. '24°C'), 'condition' (string, e.g. 'Stellar Flare'), and 'city' (string, 'Nebula City').",
+          config: { responseMimeType: "application/json" }
+        });
+        const data = JSON.parse(response.text);
+        setWeather(data);
+      } catch (error) {
+        console.error("Weather fetch error:", error);
+        setWeather({ temp: "22°C", condition: "Stellar Drift", city: "Nebula City" });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchWeather();
+  }, []);
+
+  return (
+    <div className="h-full bg-gradient-to-b from-blue-400 to-blue-600 p-8 text-white flex flex-col items-center justify-center">
+      {loading ? (
+        <RefreshCw className="animate-spin" size={48} />
+      ) : (
+        <div className="text-center">
+          <h2 className="text-3xl font-light">{weather?.city}</h2>
+          <div className="text-8xl font-thin my-4">{weather?.temp}</div>
+          <p className="text-xl">{weather?.condition}</p>
+          <div className="mt-12 grid grid-cols-4 gap-4">
+            {['Mon', 'Tue', 'Wed', 'Thu'].map(day => (
+              <div key={day} className="text-center">
+                <p className="text-sm opacity-70">{day}</p>
+                <Cloud className="mx-auto my-2" size={24} />
+                <p className="font-bold">{weather?.temp}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      ))}
+      )}
     </div>
-  </div>
-);
+  );
+};
+
+const NebulaAIApp = () => {
+  const [messages, setMessages] = useState<{ role: 'user' | 'model', text: string }[]>([
+    { role: 'model', text: 'Greetings, traveler. I am Nebula AI. How can I assist your journey across the stars today?' }
+  ]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!input.trim() || loading) return;
+    const userMsg = input;
+    setInput('');
+    setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+    setLoading(true);
+
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [...messages.map(m => ({ role: m.role, parts: [{ text: m.text }] })), { role: 'user', parts: [{ text: userMsg }] }],
+        config: { systemInstruction: "You are Nebula AI, a helpful and futuristic assistant for the Nebula OS. Your tone is helpful, slightly poetic, and technologically advanced." }
+      });
+      setMessages(prev => [...prev, { role: 'model', text: response.text }]);
+    } catch (error) {
+      console.error("AI error:", error);
+      setMessages(prev => [...prev, { role: 'model', text: "I'm sorry, my neural links are currently experiencing stellar interference." }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="h-full bg-zinc-950 text-white flex flex-col">
+      <div className="p-6 border-b border-white/10 flex items-center gap-3">
+        <Sparkles className="text-purple-400" />
+        <h1 className="text-xl font-bold font-display">Nebula AI</h1>
+      </div>
+      <div ref={scrollRef} className="flex-1 p-4 space-y-4 overflow-y-auto">
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[80%] p-4 rounded-2xl ${msg.role === 'user' ? 'bg-purple-600' : 'glass border border-white/10'}`}>
+              <p className="text-sm leading-relaxed">{msg.text}</p>
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className="glass border border-white/10 p-4 rounded-2xl">
+              <div className="flex gap-1">
+                <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" />
+                <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="p-4 border-t border-white/10 flex gap-2">
+        <input 
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleSend()}
+          placeholder="Ask Nebula AI..."
+          className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-purple-500"
+        />
+        <button 
+          onClick={handleSend}
+          className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center hover:bg-purple-500 transition-colors"
+        >
+          <Send size={18} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const ComputerHubApp = () => {
+  const [stats, setStats] = useState({ cpu: 12, ram: 45, storage: 68, network: 120 });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStats({
+        cpu: Math.floor(Math.random() * 20) + 5,
+        ram: Math.floor(Math.random() * 10) + 40,
+        storage: 68,
+        network: Math.floor(Math.random() * 500) + 50
+      });
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="h-full bg-zinc-950 text-white p-8 flex flex-col gap-8">
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+          <Cpu className="text-blue-400" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold font-display">Computer Hub</h1>
+          <p className="text-sm text-zinc-500 uppercase tracking-widest font-bold">System Core v4.2.0</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        {[
+          { label: 'CPU Usage', value: `${stats.cpu}%`, icon: Activity, color: 'text-green-400' },
+          { label: 'Memory', value: `${stats.ram}%`, icon: Terminal, color: 'text-blue-400' },
+          { label: 'Storage', value: `${stats.storage}%`, icon: FileText, color: 'text-purple-400' },
+          { label: 'Network', value: `${stats.network} Mbps`, icon: Globe, color: 'text-orange-400' }
+        ].map(stat => (
+          <div key={stat.label} className="glass p-6 rounded-3xl border border-white/5">
+            <stat.icon className={`${stat.color} mb-4`} size={24} />
+            <p className="text-xs text-zinc-500 font-bold uppercase mb-1">{stat.label}</p>
+            <p className="text-2xl font-display font-bold">{stat.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex-1 glass rounded-3xl border border-white/5 p-6 flex flex-col gap-4">
+        <h3 className="text-sm font-bold uppercase text-zinc-500">Active Processes</h3>
+        <div className="space-y-3">
+          {['Neural Engine', 'Stellar Comms', 'Nebula AI Core', 'System UI'].map(proc => (
+            <div key={proc} className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
+              <span className="text-sm">{proc}</span>
+              <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-1 rounded-full font-bold uppercase">Running</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const MusicApp = () => (
   <div className="h-full bg-zinc-900 p-8 flex flex-col">
@@ -307,28 +485,62 @@ const MusicApp = () => (
   </div>
 );
 
-const MessagesApp = () => (
-  <div className="h-full bg-zinc-950 text-white flex flex-col">
-    <div className="p-6 border-b border-white/5">
-      <h1 className="text-2xl font-bold font-display">Messages</h1>
-    </div>
-    <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-      {[
-        { from: 'Nova', text: 'Did you see the meteor shower?', time: '10:24 AM' },
-        { from: 'Cosmo', text: 'The new Nebula OS is fire!', time: 'Yesterday' },
-        { from: 'Stellar', text: 'Meeting at the space dock at 5.', time: 'Monday' }
-      ].map((msg, i) => (
-        <div key={i} className="glass p-4 rounded-2xl">
-          <div className="flex justify-between mb-1">
-            <span className="font-bold text-purple-400">{msg.from}</span>
-            <span className="text-[10px] text-zinc-500">{msg.time}</span>
+const MessagesApp = () => {
+  const [messages, setMessages] = useState([
+    { from: 'Nova', text: 'Did you see the meteor shower?', time: '10:24 AM', isMe: false },
+    { from: 'Cosmo', text: 'The new Nebula OS is fire!', time: 'Yesterday', isMe: false },
+    { from: 'Stellar', text: 'Meeting at the space dock at 5.', time: 'Monday', isMe: false }
+  ]);
+  const [input, setInput] = useState('');
+
+  const handleSend = () => {
+    if (!input.trim()) return;
+    const userMsg = input;
+    setInput('');
+    setMessages(prev => [...prev, { from: 'Me', text: userMsg, time: 'Just now', isMe: true }]);
+    
+    // Auto-reply logic: "I will text you back"
+    setTimeout(() => {
+      setMessages(prev => [...prev, { from: 'Nebula System', text: 'I will text you back soon!', time: 'Just now', isMe: false }]);
+    }, 1500);
+  };
+
+  return (
+    <div className="h-full bg-zinc-950 text-white flex flex-col">
+      <div className="p-6 border-b border-white/5">
+        <h1 className="text-2xl font-bold font-display">Messages</h1>
+      </div>
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex flex-col ${msg.isMe ? 'items-end' : 'items-start'}`}>
+            <div className={`max-w-[80%] p-4 rounded-2xl ${msg.isMe ? 'bg-blue-600' : 'glass border border-white/5'}`}>
+              <div className="flex justify-between mb-1 gap-4">
+                <span className={`font-bold text-xs ${msg.isMe ? 'text-white/70' : 'text-purple-400'}`}>{msg.from}</span>
+                <span className="text-[10px] text-zinc-500">{msg.time}</span>
+              </div>
+              <p className="text-sm">{msg.text}</p>
+            </div>
           </div>
-          <p className="text-sm">{msg.text}</p>
-        </div>
-      ))}
+        ))}
+      </div>
+      <div className="p-4 border-t border-white/5 flex gap-2">
+        <input 
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleSend()}
+          placeholder="Type a message..."
+          className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
+        />
+        <button 
+          onClick={handleSend}
+          className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-500 transition-colors"
+        >
+          <Send size={18} />
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const CalendarApp = () => (
   <div className="h-full bg-zinc-950 text-white p-6">
@@ -712,6 +924,8 @@ const AppStoreApp = ({ installedAppIds, onInstall, accent }: {
 }) => {
   const storeApps = [
     { id: 'messages', name: 'Quantum Chat', desc: 'Secure messaging for the stars', icon: MessageSquare, color: 'bg-blue-500' },
+    { id: 'nebula-ai', name: 'Nebula AI', desc: 'Your personal stellar assistant', icon: Sparkles, color: 'bg-purple-600' },
+    { id: 'computer-hub', name: 'Computer Hub', desc: 'System core management', icon: Cpu, color: 'bg-blue-600' },
     { id: 'calendar', name: 'Star Map', desc: 'Navigate the galaxy', icon: CalendarIcon, color: 'bg-green-500' },
     { id: 'browser', name: 'Nebula Browser', desc: 'Fast and secure browsing', icon: Globe, color: 'bg-purple-500' },
     { id: 'weather', name: 'Weather', desc: 'Real-time stellar forecasts', icon: Cloud, color: 'bg-sky-400' },
@@ -816,7 +1030,12 @@ const SettingsApp = ({
   deviceName,
   setDeviceName,
   navigationMode,
-  setNavigationMode
+  setNavigationMode,
+  installedAppIds,
+  apps,
+  onUninstall,
+  onPowerOff,
+  onRestart
 }: { 
   theme: Theme, 
   setTheme: (t: Theme) => void,
@@ -832,9 +1051,14 @@ const SettingsApp = ({
   deviceName: string,
   setDeviceName: (v: string) => void,
   navigationMode: 'gestures' | 'buttons',
-  setNavigationMode: (m: 'gestures' | 'buttons') => void
+  setNavigationMode: (m: 'gestures' | 'buttons') => void,
+  installedAppIds: string[],
+  apps: AppConfig[],
+  onUninstall: (id: AppId) => void,
+  onPowerOff: () => void,
+  onRestart: () => void
 }) => {
-  const [activeSection, setActiveSection] = useState<'main' | 'wallpaper' | 'about' | 'safety' | 'accessibility' | 'medical' | 'navigation'>('main');
+  const [activeSection, setActiveSection] = useState<'main' | 'wallpaper' | 'about' | 'safety' | 'accessibility' | 'medical' | 'navigation' | 'apps' | 'power'>('main');
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateProgress, setUpdateProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -965,6 +1189,8 @@ const SettingsApp = ({
                   { icon: Shield, label: 'Safety & Emergency', color: 'text-red-500', section: 'safety' },
                   { icon: Accessibility, label: 'Accessibility', color: 'text-purple-400', section: 'accessibility' },
                   { icon: Smartphone, label: 'Navigation', color: 'text-zinc-400', section: 'navigation' },
+                  { icon: Grid3X3, label: 'Apps', color: 'text-orange-400', section: 'apps' },
+                  { icon: Power, label: 'Power', color: 'text-red-500', section: 'power' },
                   { icon: Info, label: 'About Phone', color: 'text-blue-400', section: 'about' }
                 ].map(item => (
                   <button 
@@ -1059,6 +1285,90 @@ const SettingsApp = ({
                     <span className="text-[10px] text-zinc-500">Back, Home, and Recents buttons</span>
                   </div>
                   {navigationMode === 'buttons' && <CheckCircle2 size={20} style={{ color: accent }} />}
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {activeSection === 'apps' && (
+            <motion.div
+              key="apps"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
+                <h1 className="text-2xl font-bold font-display">Apps</h1>
+              </div>
+              
+              <div className="space-y-4">
+                {apps.filter(app => installedAppIds.includes(app.id)).map(app => (
+                  <div key={app.id} className="glass p-4 rounded-2xl flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className={`${app.color} w-10 h-10 rounded-xl flex items-center justify-center`}>
+                        <app.icon size={20} className="text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-sm">{app.name}</h3>
+                        <p className="text-[10px] text-zinc-500 uppercase tracking-widest">Installed</p>
+                      </div>
+                    </div>
+                    {['settings', 'appstore', 'camera', 'profile', 'calculator', 'notes'].includes(app.id) ? (
+                      <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">System</span>
+                    ) : (
+                      <button 
+                        onClick={() => onUninstall(app.id as AppId)}
+                        className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {activeSection === 'power' && (
+            <motion.div
+              key="power"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <button onClick={() => setActiveSection('main')} className="p-2 bg-white/5 rounded-full"><ChevronLeft size={20} /></button>
+                <h1 className="text-2xl font-bold font-display">Power</h1>
+              </div>
+              
+              <div className="space-y-4">
+                <button 
+                  onClick={onRestart}
+                  className="w-full glass p-6 rounded-2xl flex items-center gap-4 hover:bg-white/10 transition-all"
+                >
+                  <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
+                    <RefreshCw size={24} />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-bold">Restart</h3>
+                    <p className="text-xs text-zinc-500">Reboot the system core</p>
+                  </div>
+                </button>
+
+                <button 
+                  onClick={onPowerOff}
+                  className="w-full glass p-6 rounded-2xl flex items-center gap-4 hover:bg-white/10 transition-all"
+                >
+                  <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center text-red-500">
+                    <Power size={24} />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-bold">Power Off</h3>
+                    <p className="text-xs text-zinc-500">Shut down all stellar systems</p>
+                  </div>
                 </button>
               </div>
             </motion.div>
@@ -1281,7 +1591,11 @@ export default function App() {
   });
   const [time, setTime] = useState(new Date());
   const [isControlCenterOpen, setIsControlCenterOpen] = useState(false);
+  const [isPoweredOff, setIsPoweredOff] = useState(false);
+  const [isRestarting, setIsRestarting] = useState(false);
+  const [isBooting, setIsBooting] = useState(false);
   const [isAppDrawerOpen, setIsAppDrawerOpen] = useState(false);
+  const [isDraggingFromDrawer, setIsDraggingFromDrawer] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [profile, setProfile] = useState<UserProfile>(() => {
     const saved = localStorage.getItem('nebula_profile');
@@ -1367,10 +1681,12 @@ export default function App() {
   const apps: AppConfig[] = useMemo(() => [
     { id: 'browser', name: 'Browser', icon: Globe, color: 'bg-blue-500', component: BrowserApp },
     { id: 'weather', name: 'Weather', icon: Cloud, color: 'bg-sky-400', component: WeatherApp },
+    { id: 'nebula-ai', name: 'Nebula AI', icon: Sparkles, color: 'bg-purple-600', component: NebulaAIApp },
+    { id: 'computer-hub', name: 'Computer Hub', icon: Cpu, color: 'bg-blue-600', component: ComputerHubApp },
     { id: 'music', name: 'Music', icon: MusicIcon, color: 'bg-purple-600', component: MusicApp },
     { id: 'appstore', name: 'Store', icon: ShoppingBag, color: 'bg-zinc-800', component: () => <AppStoreApp installedAppIds={installedAppIds} onInstall={toggleInstall} accent={accentColor} /> },
     { id: 'camera', name: 'Camera', icon: CameraIcon, color: 'bg-zinc-700', component: CameraApp },
-    { id: 'settings', name: 'Settings', icon: SettingsIcon, color: 'bg-zinc-600', component: () => <SettingsApp theme={theme} setTheme={setTheme} accent={accentColor} setAccent={setAccentColor} profile={profile} setProfile={setProfile} onOpenProfile={() => setActiveApp('profile')} wallpaper={wallpaper} setWallpaper={setWallpaper} reduceMotion={reduceMotion} setReduceMotion={setReduceMotion} deviceName={deviceName} setDeviceName={setDeviceName} navigationMode={navigationMode} setNavigationMode={setNavigationMode} /> },
+    { id: 'settings', name: 'Settings', icon: SettingsIcon, color: 'bg-zinc-600', component: () => <SettingsApp theme={theme} setTheme={setTheme} accent={accentColor} setAccent={setAccentColor} profile={profile} setProfile={setProfile} onOpenProfile={() => setActiveApp('profile')} wallpaper={wallpaper} setWallpaper={setWallpaper} reduceMotion={reduceMotion} setReduceMotion={setReduceMotion} deviceName={deviceName} setDeviceName={setDeviceName} navigationMode={navigationMode} setNavigationMode={setNavigationMode} installedAppIds={installedAppIds} apps={apps} onUninstall={handleUninstall} onPowerOff={handlePowerOff} onRestart={handleRestart} /> },
     { id: 'profile', name: 'Profile', icon: User, color: 'bg-indigo-500', component: () => <ProfileApp profile={profile} setProfile={setProfile} accent={accentColor} /> },
     { id: 'messages', name: 'Messages', icon: MessageSquare, color: 'bg-blue-500', component: MessagesApp },
     { id: 'calendar', name: 'Calendar', icon: CalendarIcon, color: 'bg-green-500', component: CalendarApp },
@@ -1410,17 +1726,53 @@ export default function App() {
 
   const handleDragEnd = (draggedItem: HomeItem, info: any) => {
     const { x, y } = info.point;
-    // Simple overlap detection for folder creation
-    // This is a basic implementation. In a real app, we'd use element refs and getBoundingClientRect.
-    // Since we're in a grid, we can estimate based on the drop position.
     
-    // If we dropped an app onto another app, create a folder
-    if (draggedItem.type === 'app') {
-      // Find if we're over another app
-      // We'll use a simple heuristic for now
-      // If the drop is near another item, we could trigger folder creation
-      // For this demo, we'll implement a "Create Folder" long-press or similar if this is too complex
-      // But let's try a basic distance check if we had coordinates
+    // Check for folder merging
+    const targetItem = homeItems.find(item => {
+      if (item.id === draggedItem.id) return false;
+      const el = document.getElementById(`home-item-${item.id}`);
+      if (!el) return false;
+      const rect = el.getBoundingClientRect();
+      return x > rect.left && x < rect.right && y > rect.top && y < rect.bottom;
+    });
+
+    if (targetItem) {
+      if (targetItem.type === 'folder') {
+        // Add to existing folder
+        if (draggedItem.type === 'app') {
+          setFolders(prev => prev.map(f => 
+            f.id === targetItem.id ? { ...f, appIds: [...f.appIds, draggedItem.id as AppId] } : f
+          ));
+          setHomeItems(prev => prev.filter(item => item.id !== draggedItem.id));
+        }
+      } else if (targetItem.type === 'app' && draggedItem.type === 'app') {
+        // Create new folder
+        const folderId = `folder-${Date.now()}`;
+        const folderName = prompt('Folder Name?', 'New Folder') || 'New Folder';
+        setFolders(prev => [...prev, { 
+          id: folderId, 
+          name: folderName, 
+          appIds: [targetItem.id as AppId, draggedItem.id as AppId] 
+        }]);
+        setHomeItems(prev => prev.filter(item => item.id !== targetItem.id && item.id !== draggedItem.id));
+        setHomeItems(prev => [{ type: 'folder', id: folderId }, ...prev]);
+      }
+    }
+  };
+
+  const handleUninstall = (id: AppId) => {
+    if (['settings', 'appstore', 'camera', 'profile', 'calculator', 'notes'].includes(id)) return;
+    
+    setInstalledAppIds(prev => prev.filter(appId => appId !== id));
+    setHomeItems(prev => prev.filter(item => !(item.type === 'app' && item.id === id)));
+    // Also remove from folders
+    setFolders(prev => prev.map(f => ({
+      ...f,
+      appIds: f.appIds.filter(appId => appId !== id)
+    })));
+    
+    if (activeApp === id) {
+      setActiveApp('home');
     }
   };
 
@@ -1446,6 +1798,33 @@ export default function App() {
     setHistory(['home']);
   };
 
+  const handleRestart = () => {
+    setIsControlCenterOpen(false);
+    setIsRestarting(true);
+    setTimeout(() => {
+      setIsRestarting(false);
+      setIsBooting(true);
+      setTimeout(() => {
+        setIsBooting(false);
+        setActiveApp('home');
+      }, 3000);
+    }, 1000);
+  };
+
+  const handlePowerOff = () => {
+    setIsControlCenterOpen(false);
+    setIsPoweredOff(true);
+  };
+
+  const handlePowerOn = () => {
+    setIsBooting(true);
+    setTimeout(() => {
+      setIsBooting(false);
+      setIsPoweredOff(false);
+      setActiveApp('home');
+    }, 3000);
+  };
+
   return (
     <div className={`fixed inset-0 flex items-center justify-center ${theme.bg} transition-colors duration-700`}>
       {/* Wallpaper */}
@@ -1460,8 +1839,67 @@ export default function App() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] blur-[120px] rounded-full animate-pulse" style={{ backgroundColor: `${accentColor}10`, animationDelay: '2s' }} />
       </div>
 
+      {/* Power Off Screen */}
+      <AnimatePresence>
+        {isPoweredOff && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1000] bg-black flex flex-col items-center justify-center gap-8"
+          >
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handlePowerOn}
+              className="w-20 h-20 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center text-white/30 hover:text-white transition-colors"
+            >
+              <Zap size={32} />
+            </motion.button>
+            <p className="text-zinc-700 text-xs uppercase tracking-[0.2em] font-bold">Hold to Power On</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Boot/Restart Screen */}
+      <AnimatePresence>
+        {(isRestarting || isBooting) && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1000] bg-black flex flex-col items-center justify-center"
+          >
+            <motion.div
+              animate={{ 
+                scale: [1, 1.1, 1],
+                opacity: [0.5, 1, 0.5]
+              }}
+              transition={{ repeat: Infinity, duration: 2 }}
+              className="flex flex-col items-center gap-4"
+            >
+              <div className="w-24 h-24 rounded-[2.5rem] bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-[0_0_50px_rgba(79,70,229,0.3)]">
+                <Smartphone size={48} className="text-white" />
+              </div>
+              <h1 className="text-2xl font-bold font-display text-white tracking-widest">NEBULA OS</h1>
+            </motion.div>
+            <div className="absolute bottom-20 flex flex-col items-center gap-2">
+              <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden">
+                <motion.div 
+                  initial={{ x: '-100%' }}
+                  animate={{ x: '100%' }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                  className="w-1/2 h-full bg-gradient-to-r from-transparent via-purple-500 to-transparent"
+                />
+              </div>
+              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">System Loading</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* OS Container - Full Screen with Square Edges */}
-      <div className="relative w-full h-full bg-black overflow-hidden flex flex-col">
+      <div className={`relative w-full h-full bg-black overflow-hidden flex flex-col transition-all duration-700 ${isPoweredOff ? 'brightness-0' : ''}`}>
         
         {/* Status Bar / Swipe Down Trigger */}
         {/* Status Bar / Gesture Area */}
@@ -1484,7 +1922,7 @@ export default function App() {
             {wifiEnabled && <Wifi size={14} />}
             {bluetoothEnabled && <Bluetooth size={14} />}
             <Signal size={14} />
-            <Battery size={14} className="rotate-90" />
+            <Battery size={14} />
           </div>
         </motion.div>
 
@@ -1530,6 +1968,8 @@ export default function App() {
                       <Reorder.Item 
                         key={item.id || (item as any).id || (item as any).type + (item as any).id}
                         value={item}
+                        id={`home-item-${item.id}`}
+                        onDragEnd={(_, info) => handleDragEnd(item, info)}
                         className={`${isWidget ? 'col-span-2 row-span-1' : 'col-span-1'}`}
                       >
                         {isApp && (() => {
@@ -1678,7 +2118,22 @@ export default function App() {
                   />
                 </div>
 
-                <div className="grid grid-cols-4 gap-y-8 gap-x-4 overflow-y-auto pb-20">
+                <div className="grid grid-cols-4 gap-y-8 gap-x-4 overflow-y-auto pb-20 relative">
+                  <AnimatePresence>
+                    {isDraggingFromDrawer && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 50 }}
+                        className="fixed bottom-24 left-8 right-8 h-20 glass rounded-2xl border-2 border-dashed border-white/20 flex items-center justify-center gap-3 z-[110]"
+                        style={{ borderColor: accentColor }}
+                      >
+                        <FolderPlus className="text-white" size={24} />
+                        <span className="text-xs font-bold text-white uppercase tracking-widest">Drop to add to folder</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                   {apps.filter(app => 
                     app.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
                     installedAppIds.includes(app.id)
@@ -1686,6 +2141,32 @@ export default function App() {
                     <motion.div
                       key={`drawer-${app.id}`}
                       className="flex flex-col items-center gap-2 relative group"
+                      drag
+                      dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
+                      dragElastic={1}
+                      onDragStart={() => setIsDraggingFromDrawer(true)}
+                      onDragEnd={(_, info) => {
+                        setIsDraggingFromDrawer(false);
+                        // If dragged up significantly, pin to home
+                        if (info.offset.y < -150) {
+                          if (!homeItems.some(item => item.type === 'app' && item.id === app.id)) {
+                            setHomeItems(prev => [{ type: 'app', id: app.id }, ...prev]);
+                            setIsAppDrawerOpen(false);
+                          }
+                        }
+                        // If dragged down to the folder zone
+                        else if (info.offset.y > 150) {
+                          if (folders.length === 0) {
+                            alert('Create a folder first!');
+                            return;
+                          }
+                          const folderName = prompt(`Add to which folder?\nAvailable: ${folders.map(f => f.name).join(', ')}`);
+                          const folder = folders.find(f => f.name === folderName);
+                          if (folder) {
+                            setFolders(prev => prev.map(f => f.id === folder.id ? { ...f, appIds: [...new Set([...f.appIds, app.id])] } : f));
+                          }
+                        }
+                      }}
                     >
                       <motion.button
                         whileHover={{ scale: 1.1 }}
@@ -1757,9 +2238,21 @@ export default function App() {
               >
                 <div className="flex items-center justify-between mb-2">
                   <h2 className="text-xl font-bold font-display text-white">Quick Settings</h2>
-                  <button onClick={() => setIsControlCenterOpen(false)} className="p-2 bg-white/10 rounded-full">
-                    <X size={20} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => {
+                        const confirmPower = window.confirm("Power Options:\nOK to Restart, Cancel to Power Off");
+                        if (confirmPower) handleRestart();
+                        else handlePowerOff();
+                      }}
+                      className="p-2 bg-red-500/20 text-red-400 rounded-full hover:bg-red-500/40 transition-colors"
+                    >
+                      <Zap size={20} />
+                    </button>
+                    <button onClick={() => setIsControlCenterOpen(false)} className="p-2 bg-white/10 rounded-full">
+                      <X size={20} />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
