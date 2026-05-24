@@ -38,6 +38,7 @@ import {
   SkipBack,
   SkipForward,
   Bluetooth,
+  Link,
   Zap,
   Flashlight,
   Mail,
@@ -303,18 +304,18 @@ const ProfileApp = ({ profile, setProfile, accent }: { profile: UserProfile, set
 };
 
 const BrowserApp = () => (
-  <div className="flex flex-col h-full bg-white text-black">
-    <div className="p-4 bg-zinc-100 border-b flex items-center gap-2">
-      <div className="flex-1 bg-white rounded-full px-4 py-1 text-sm border flex items-center gap-2">
+  <div className="flex flex-col h-full bg-[#0a0a0a] text-white">
+    <div className="p-4 bg-zinc-900 border-b border-white/10 flex items-center gap-2">
+      <div className="flex-1 bg-white/5 rounded-full px-4 py-2 text-sm border border-white/10 flex items-center gap-2">
         <Globe size={14} className="text-zinc-400" />
-        <span>google.com</span>
+        <span className="text-zinc-300">nebula-search.vercel.app</span>
       </div>
     </div>
-    <div className="flex-1">
+    <div className="flex-1 overflow-hidden">
       <iframe 
-        src="https://www.google.com/search?igu=1" 
+        src="https://nebula-search.vercel.app/" 
         className="w-full h-full border-none"
-        title="Google"
+        title="Nebula Search"
       />
     </div>
   </div>
@@ -390,6 +391,8 @@ const QuadraisAIApp = () => {
     </div>
   );
 };
+
+
 
 const ComputerHubApp = () => {
   const [stats, setStats] = useState({ cpu: 12, ram: 45, storage: 68, network: 120 });
@@ -1265,7 +1268,8 @@ const SettingsApp = ({
   apps,
   onUninstall,
   onPowerOff,
-  onRestart
+  onRestart,
+  onFactoryReset
 }: { 
   theme: Theme, 
   setTheme: (t: Theme) => void,
@@ -1286,11 +1290,13 @@ const SettingsApp = ({
   apps: AppConfig[],
   onUninstall: (id: AppId) => void,
   onPowerOff: () => void,
-  onRestart: () => void
+  onRestart: () => void,
+  onFactoryReset: () => void
 }) => {
   const [activeSection, setActiveSection] = useState<'main' | 'wallpaper' | 'about' | 'safety' | 'accessibility' | 'medical' | 'navigation' | 'apps' | 'power' | 'update'>('main');
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateProgress, setUpdateProgress] = useState(0);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const PREMADE_WALLPAPERS = [
@@ -1648,6 +1654,99 @@ const SettingsApp = ({
                   <span className="font-mono text-[10px]">NB-992-X-2026</span>
                 </div>
               </div>
+
+              <div className="glass rounded-2xl border border-white/5 p-4 space-y-3">
+                <div className="text-xs uppercase font-bold text-zinc-500 tracking-wider px-1">Reset & Companion</div>
+                
+                <a 
+                  href="https://nebula-os-link.vercel.app/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5"
+                >
+                  <div className="flex items-center gap-3">
+                    <Link size={16} style={{ color: accent }} className="rotate-45" />
+                    <span className="font-semibold text-sm">Factory Reset to Nebula OS</span>
+                  </div>
+                  <ChevronLeft size={14} className="rotate-180 opacity-40" />
+                </a>
+
+                <button
+                  onClick={() => setShowResetConfirm(true)}
+                  className="w-full flex items-center justify-between p-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 transition-colors text-red-400 border border-red-500/20"
+                >
+                  <div className="flex items-center gap-3">
+                    <Trash2 size={16} className="text-red-400" />
+                    <span className="font-semibold text-sm text-red-400">Factory Reset</span>
+                  </div>
+                  <ChevronLeft size={14} className="rotate-180 opacity-40 text-red-400" />
+                </button>
+              </div>
+
+              <AnimatePresence>
+                {showResetConfirm && (
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 z-[110] bg-black/95 backdrop-blur-md flex items-center justify-center p-6"
+                  >
+                    <motion.div 
+                      initial={{ scale: 0.9, y: 20 }}
+                      animate={{ scale: 1, y: 0 }}
+                      exit={{ scale: 0.9, y: 20 }}
+                      className="w-full max-w-sm bg-zinc-950 border border-white/10 rounded-3xl p-6 shadow-2xl flex flex-col gap-6 text-left"
+                    >
+                      <div className="flex items-center gap-4 text-red-500">
+                        <div className="w-12 h-12 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-center justify-center">
+                          <AlertTriangle size={24} />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold font-display text-white">Wipe Nebula OS?</h3>
+                          <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">Local Device Restoration</p>
+                        </div>
+                      </div>
+
+                      <div className="text-xs text-zinc-400 leading-relaxed bg-white/5 p-4 rounded-2xl border border-white/5 space-y-2">
+                        <p>This will erase all custom configurations of Nebula OS and restore clean default values.</p>
+                        <p className="text-[10px] text-zinc-400">To check out the external network companion app, click the companion link option.</p>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <a 
+                          href="https://nebula-os-link.vercel.app/" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          onClick={() => setShowResetConfirm(false)}
+                          className="w-full py-3 text-center text-xs font-bold uppercase tracking-widest bg-white/15 hover:bg-white/25 active:scale-95 transition-all text-white rounded-full border border-white/5 flex items-center justify-center gap-2 animate-pulse"
+                        >
+                          <Link size={14} className="rotate-45" />
+                          <span>Go to Companion Site</span>
+                        </a>
+
+                        <button
+                          onClick={() => {
+                            setShowResetConfirm(false);
+                            onFactoryReset();
+                          }}
+                          className="w-full py-3 text-xs font-bold uppercase tracking-widest active:scale-95 transition-all text-white rounded-full flex items-center justify-center gap-2"
+                          style={{ backgroundColor: accent }}
+                        >
+                          <Trash2 size={14} />
+                          <span>Wipe & Restart OS</span>
+                        </button>
+
+                        <button
+                          onClick={() => setShowResetConfirm(false)}
+                          className="w-full py-2.5 text-xs text-zinc-500 hover:text-white transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
 
@@ -2072,7 +2171,7 @@ export default function App() {
     { id: 'appstore', name: 'Store', icon: ShoppingBag, color: 'bg-zinc-800', component: () => <AppStoreApp installedAppIds={installedAppIds} onInstall={toggleInstall} accent={accentColor} /> },
     { id: 'camera', name: 'Camera', icon: CameraIcon, color: 'bg-zinc-700', component: () => <CameraApp onCapture={handleCapture} /> },
     { id: 'photos', name: 'Photos', icon: ImageLucide, color: 'bg-rose-500', component: () => <PhotosApp photos={photos} onUpload={handlePhotoUpload} /> },
-    { id: 'settings', name: 'Settings', icon: SettingsIcon, color: 'bg-zinc-600', component: () => <SettingsApp theme={theme} setTheme={setTheme} accent={accentColor} setAccent={setAccentColor} profile={profile} setProfile={setProfile} onOpenProfile={() => setActiveApp('profile')} wallpaper={wallpaper} setWallpaper={setWallpaper} reduceMotion={reduceMotion} setReduceMotion={setReduceMotion} deviceName={deviceName} setDeviceName={setDeviceName} navigationMode={navigationMode} setNavigationMode={setNavigationMode} installedAppIds={installedAppIds} apps={apps} onUninstall={handleUninstall} onPowerOff={handlePowerOff} onRestart={handleRestart} /> },
+    { id: 'settings', name: 'Settings', icon: SettingsIcon, color: 'bg-zinc-600', component: () => <SettingsApp theme={theme} setTheme={setTheme} accent={accentColor} setAccent={setAccentColor} profile={profile} setProfile={setProfile} onOpenProfile={() => setActiveApp('profile')} wallpaper={wallpaper} setWallpaper={setWallpaper} reduceMotion={reduceMotion} setReduceMotion={setReduceMotion} deviceName={deviceName} setDeviceName={setDeviceName} navigationMode={navigationMode} setNavigationMode={setNavigationMode} installedAppIds={installedAppIds} apps={apps} onUninstall={handleUninstall} onPowerOff={handlePowerOff} onRestart={handleRestart} onFactoryReset={handleFactoryReset} /> },
     { id: 'profile', name: 'Profile', icon: User, color: 'bg-indigo-500', component: () => <ProfileApp profile={profile} setProfile={setProfile} accent={accentColor} /> },
     { id: 'messages', name: 'Messages', icon: MessageSquare, color: 'bg-blue-500', component: MessagesApp },
     { id: 'calendar', name: 'Calendar', icon: CalendarIcon, color: 'bg-green-500', component: CalendarApp },
@@ -2183,6 +2282,57 @@ export default function App() {
   const handleHomeGesture = () => {
     setActiveApp('home');
     setHistory(['home']);
+  };
+
+  const handleFactoryReset = () => {
+    localStorage.clear();
+    setTheme(THEMES[0]);
+    setAccentColor('#9333ea');
+    setProfile(DEFAULT_PROFILE);
+    const defaultApps = [
+      'browser', 'weather', 'music', 'appstore', 'camera', 'settings', 
+      'messages', 'computer-hub', 'calendar', 'emails', 'paint', 'snake', 
+      'minesweeper', 'calculator', 'notes', 'maps', 'photos', 'quadrais-ai'
+    ];
+    setInstalledAppIds(defaultApps);
+    setPhotos([]);
+    setWallpaper('https://picsum.photos/seed/nebulabs-bg/1080/1920');
+    setReduceMotion(false);
+    setDeviceName('Nebula Phone 1');
+    setNavigationMode('gestures');
+    setHomeItems([
+      { type: 'widget', id: 'clock-1' },
+      { type: 'app', id: 'browser' },
+      { type: 'app', id: 'weather' },
+      { type: 'app', id: 'music' },
+      { type: 'app', id: 'photos' },
+      { type: 'app', id: 'appstore' }
+    ]);
+    setFolders([]);
+    setWidgets([
+      { id: 'clock-1', type: 'clock', size: 'medium' }
+    ]);
+    setWifiEnabled(true);
+    setBluetoothEnabled(false);
+    setFlashlightEnabled(false);
+    setBrightness(80);
+    setActiveApp('home');
+    setHistory(['home']);
+
+    setIsControlCenterOpen(false);
+    setIsNotificationCenterOpen(false);
+    setIsAppDrawerOpen(false);
+    setIsRecentsOpen(false);
+    
+    // Trigger reset reboot sequence
+    setIsRestarting(true);
+    setTimeout(() => {
+      setIsRestarting(false);
+      setIsBooting(true);
+      setTimeout(() => {
+        setIsBooting(false);
+      }, 3000);
+    }, 1000);
   };
 
   const handleRestart = () => {
